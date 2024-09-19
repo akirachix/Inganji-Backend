@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'api',
      'sacco',
     'cooperative',
+    'score',
     'rest_framework',
 ]
 
