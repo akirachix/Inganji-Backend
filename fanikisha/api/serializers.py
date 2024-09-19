@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from milkrecords.models import MilkRecords
 from farmers.models import FarmersManagement
+from score.models import Score
 
 class MilkRecordsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -26,3 +27,8 @@ class FarmersManagementSerializer(serializers.ModelSerializer):
     class Meta:
         model = FarmersManagement
         fields = ['first_name',"last_name" ,'phone_number', 'cooperative_number', 'created_at']
+
+class ScoreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model=Score
+        fields="__all__"
