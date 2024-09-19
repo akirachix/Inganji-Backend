@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'farmers',
     'milkrecords',
     'api',
+     'sacco',
+    'cooperative',
     'rest_framework',
 ]
 
