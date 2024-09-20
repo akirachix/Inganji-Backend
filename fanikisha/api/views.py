@@ -1,17 +1,16 @@
 from django.shortcuts import render
-
-from django.shortcuts import render
 from rest_framework.views import APIView
-from rest_framework import status
-from score.models import Score
-from .ml_model import predict_credit_score
+from rest_framework import generics,status
 from rest_framework.response import Response
 from farmers.models import  FarmersManagement
 from milkrecords.models import MilkRecords
-from .serializers import  FarmersManagementSerializer, MilkRecordsSerializer, MilkRecordsDetailSerializer, FarmerDetailSerializer,ScoreSerializer
+from cooperative.models import Cooperative
+from sacco.models import Sacco
+from .serializers import  FarmersManagementSerializer, MilkRecordsSerializer, MilkRecordsDetailSerializer, FarmerDetailSerializer,CooperativeSerializer, SaccoSerializer ,ScoreSerializer
+from score.models import Score
+from .ml_model import predict_credit_score
 from django.shortcuts import get_object_or_404
 import logging
-
 class FarmersManagementListView(APIView):
     def get(self, request):
         farmers = FarmersManagement.objects.all()
@@ -91,8 +90,56 @@ class MilkRecordsDetailView(APIView):
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+class SaccoList(generics.ListCreateAPIView):
+    serializer_class = SaccoSerializer
 
+    def get_queryset(self):
+        return Sacco.objects.all()
 
+    def get(self, request):
+        sacco = self.get_queryset()
+        serializer = self.get_serializer(sacco, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class SaccoDetail(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = SaccoSerializer
+
+    def get_object(self, pk):
+        try:
+            return Sacco.objects.get(pk=pk)
+        except Sacco.DoesNotExist:
+            raise Http404("Sacco not found")
+
+    def get(self, request, sacco_id):
+        sacco = self.get_object(sacco_id)
+        serializer = self.get_serializer(sacco)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    
+class CooperativeList(generics.ListCreateAPIView):
+    serializer_class = CooperativeSerializer
+
+    def get_queryset(self):
+        return Cooperative.objects.all()
+
+    def get(self, request):
+        cooperative = self.get_queryset()
+        serializer = self.get_serializer(cooperative, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 logger = logging.getLogger(__name__)
 
 class ScoreDetailView(APIView):
@@ -165,5 +212,4 @@ class ScoreListView(APIView):
             queryset = queryset.filter(farmer__farmer_id=farmer_id)
             
         return queryset
-
 

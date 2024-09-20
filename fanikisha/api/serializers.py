@@ -1,7 +1,10 @@
 from rest_framework import serializers
 from milkrecords.models import MilkRecords
 from farmers.models import FarmersManagement
+from cooperative.models import Cooperative
+from sacco.models import Sacco
 from score.models import Score
+
 
 class MilkRecordsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,6 +30,18 @@ class FarmersManagementSerializer(serializers.ModelSerializer):
     class Meta:
         model = FarmersManagement
         fields = ['first_name',"last_name" ,'phone_number', 'cooperative_number', 'created_at']
+
+class SaccoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Sacco
+        fields = '__all__'
+
+
+class CooperativeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Cooperative
+        fields = '__all__'        
+
 
 class ScoreSerializer(serializers.ModelSerializer):
     class Meta:
