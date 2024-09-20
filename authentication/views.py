@@ -6,7 +6,7 @@ from django.shortcuts import redirect, render, redirect
 from django.urls import reverse
 from urllib.parse import quote_plus, urlencode
 from django.contrib.auth.hashers import make_password
-from authentication.views import generate_token  # Correctly import generate_token
+from authentication.views import generate_token
 
 
 
