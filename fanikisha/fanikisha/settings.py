@@ -9,13 +9,24 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
 from pathlib import Path
+import os
+from dotenv import load_dotenv, find_dotenv
+from pathlib import Path
+load_dotenv()
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+SIMPLE_JWT = {
+    'AUTH_COOKIE': 'access_token',  # Cookie name for storing the access token
+    'AUTH_COOKIE_SECURE': False,    # Set to True in production
+    'AUTH_COOKIE_HTTP_ONLY': True,  # HTTP-only cookie to prevent JavaScript access
+    'AUTH_COOKIE_PATH': '/',        # Cookie available site-wide
+    'AUTH_COOKIE_SAMESITE': 'Lax',  # Adjust SameSite settings as needed
+}
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -40,10 +51,14 @@ INSTALLED_APPS = [
     'farmers',
     'milkrecords',
     'api',
-     'sacco',
+    'sacco',
     'cooperative',
     'score',
     'rest_framework',
+    'users',
+    'authentication',
+    'rest_framework.authtoken',
+    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
@@ -128,3 +143,19 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+ENV_FILE = find_dotenv()
+if ENV_FILE:
+    load_dotenv(ENV_FILE)
+
+# Load Auth0 application settings into memory
+AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN")
+AUTH0_CLIENT_ID = os.environ.get("AUTH0_CLIENT_ID")
+AUTH0_CLIENT_SECRET = os.environ.get("AUTH0_CLIENT_SECRET")
+
+
+AUTH_USER_MODEL = 'users.UserProfile'
+AUTHENTICATION_BACKENDS = (
+        'django.contrib.auth.backends.ModelBackend',
+    )

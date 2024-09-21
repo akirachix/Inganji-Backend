@@ -4,7 +4,8 @@ from farmers.models import FarmersManagement
 from cooperative.models import Cooperative
 from sacco.models import Sacco
 from score.models import Score
-
+from rest_framework import serializers
+from users.models import UserProfile
 
 class MilkRecordsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -47,3 +48,11 @@ class ScoreSerializer(serializers.ModelSerializer):
     class Meta:
         model=Score
         fields="__all__"
+
+
+
+
+class UserProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserProfile
+        fields = "__all__"
