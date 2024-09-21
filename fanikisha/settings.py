@@ -59,6 +59,8 @@ INSTALLED_APPS = [
     'authentication',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
+    'sms',
+    'django_crontab',
 ]
 
 MIDDLEWARE = [
@@ -159,3 +161,14 @@ AUTH_USER_MODEL = 'users.UserProfile'
 AUTHENTICATION_BACKENDS = (
         'django.contrib.auth.backends.ModelBackend',
     )
+
+
+SMS_LEOPARD_API_URL = 'https://api.smsleopard.com/v1/sms/send'
+SMS_LEOPARD_ACCESS_TOKEN=  'alA4aXRHVHc2OG9QUGF2a0dxYVc6M01pSldhYUhDMlF2eVdnNHdYZnpNUjMzQzZZeFNNTVUyQmN4aEhuYg=='
+
+
+CRONJOBS = [
+        ('36 18 * * *', 'sms.views.send_monthly_milk_record_sms'),  # Runs at midnight on the first day of each month
+        # ('0 * * * *', 'sms.views.send_loan_eligibility_status_sms'),  # Runs every day
+        
+]
