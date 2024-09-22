@@ -1,5 +1,8 @@
+from calendar import month
 from datetime import datetime, timedelta
 from django.db.models import Sum
+
+from milkrecords.models import MilkRecords
 from .sms_utils import send_sms, validate_phone_number
 from farmers.models import FarmersManagement
 from django.http import JsonResponse
@@ -17,11 +20,11 @@ logger = logging.getLogger(__name__)
 def send_monthly_milk_record_sms():
     logger.info("Starting milk record SMS job")
     last_month = (datetime.now().replace(day=1) - timedelta(days=1)).strftime('%B %Y')
-    farmers = Farmer.objects.all()
+    farmers = FarmersManagement.objects.all()
   
         
     for farmer in farmers:
-        milk_record = MilkRecord.objects.filter(farmer=farmer, date__month=datetime.now().month - 1).aggregate(total_milk=Sum('liters'))
+        milk_record = MilkRecords.objects.filter(farmer=farmer, date__month=datetime.now().month - 1).aggregate(total_milk=Sum('liters'))
         total_milk = milk_record['total_milk'] or 0
         total_price = self.calculate_total_price(total_milk)
 
