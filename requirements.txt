@@ -21,4 +21,5 @@ requests-oauthlib==2.0.0
 oauthlib==3.2.2
 python-dotenv==1.0.1
 urllib3== 2.2.3
-django-cors-headers== 4.4.0
+django-cors-headers==4.4.0
+django-crontab==0.7.1
