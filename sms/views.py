@@ -29,7 +29,7 @@ def send_monthly_milk_record_sms():
 
         logger.info("Finished milk record SMS job")
         message = (
-            f"Dear {na}, "
+            f"Dear {farmer.name}, "
             f"your total milk production for {month} was {total_milk} liters, "
             f"earning you a total of {total_price} KSH."
         )
@@ -64,16 +64,11 @@ logger = logging.getLogger(__name__)
 
 @api_view(['POST'])
 def check_eligibility(request):
-    farmer_id = request.data.get('farmer_id')
-    print(f"!!!!!!!!!{farmer_id}!!!!!")
-    
+    farmer_id = request.data.get('farmer_id')    
     try:
         farmer = FarmersManagement.objects.get(farmer_id=farmer_id)
-        print(f"$$$$$$$$$$$$$4444{farmer}$$$$$$$$$$$$$$$4")
-        
         score_record = Score.objects.filter(farmer_id=farmer_id).order_by('-last_checked_date').first()
 
-        print(f"&&&&&&&&&&&&&&&&777{score_record}**********")
         
         if score_record:
             is_eligible = score_record.is_eligible
@@ -90,7 +85,6 @@ def check_eligibility(request):
             is_eligible = False
 
         phone_number = farmer.phone_number 
-
         headers = {
             "Authorization": f"Basic {settings.SMS_LEOPARD_ACCESS_TOKEN}",
             "Content-Type": "application/json",
