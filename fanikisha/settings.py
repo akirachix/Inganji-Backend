@@ -9,6 +9,13 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
+from pathlib import Path
+import os
+from dotenv import load_dotenv, find_dotenv
+from pathlib import Path
+load_dotenv()
+# import dj_database_url
+import dj_database_url
 
 
 
@@ -49,6 +56,7 @@ INSTALLED_APPS = [
     'api',
     'sacco',
     'cooperative',
+    'corsheaders',
     'score',
     'rest_framework',
     'users',
@@ -63,11 +71,21 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+
+
+
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 ROOT_URLCONF = 'fanikisha.urls'
 
@@ -93,12 +111,27 @@ WSGI_APPLICATION = 'fanikisha.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+DATABASE_URL = os.getenv("DATABASE_URL")
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    'default': dj_database_url.config(
+        default=os.getenv('DATABASE_URL')
+    )
 }
+# Fallback for local development and test environments
+if not os.getenv('DATABASE_URL'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -148,10 +181,10 @@ if ENV_FILE:
     load_dotenv(ENV_FILE)
 
 # Load Auth0 application settings into memory
-AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN")
-AUTH0_CLIENT_ID = os.environ.get("AUTH0_CLIENT_ID")
-AUTH0_CLIENT_SECRET = os.environ.get("AUTH0_CLIENT_SECRET")
-
+AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN","")
+AUTH0_CLIENT_ID = os.environ.get("AUTH0_CLIENT_ID","")
+AUTH0_CLIENT_SECRET = os.environ.get("AUTH0_CLIENT_SECRET","")
+REDIRECT_URI=os.environ.get("REDIRECT_URI","")
 
 AUTH_USER_MODEL = 'users.UserProfile'
 AUTHENTICATION_BACKENDS = (
