@@ -4,13 +4,12 @@ from datetime import datetime, timedelta
 import logging
 from django.conf import settings
 from .sms_utils import send_sms, validate_phone_number
-# from .models import farmer, milk
+from .models import farmer, milk
 from django.db.models import Sum
 
 logger = logging.getLogger(__name__)
 
 def send_milk_record_sms():
-    print("*****************************************")
     last_month = (datetime.now().replace(day=1) - timedelta(days=1)).strftime('%B %Y')
 
     farmers = Farmer.objects.all()
@@ -58,7 +57,7 @@ import random
 import logging
 from django.conf import settings
 from .sms_utils import send_sms
-# from .models import farmer
+from .models import farmer
 
 logger = logging.getLogger(__name__)
 
