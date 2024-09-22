@@ -9,11 +9,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-from pathlib import Path
-import os
-from dotenv import load_dotenv, find_dotenv
-from pathlib import Path
-load_dotenv()
+
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -163,12 +159,17 @@ AUTHENTICATION_BACKENDS = (
     )
 
 
-SMS_LEOPARD_API_URL = 'https://api.smsleopard.com/v1/sms/send'
-SMS_LEOPARD_ACCESS_TOKEN=  'alA4aXRHVHc2OG9QUGF2a0dxYVc6M01pSldhYUhDMlF2eVdnNHdYZnpNUjMzQzZZeFNNTVUyQmN4aEhuYg=='
+from pathlib import Path
+import os
+from dotenv import load_dotenv, find_dotenv
+load_dotenv()
+
+SMS_LEOPARD_API_URL = os.getenv('SMS_LEOPARD_API_URL', 'default_url_if_not_set')
+SMS_LEOPARD_ACCESS_TOKEN = os.getenv('SMS_LEOPARD_ACCESS_TOKEN', 'default_token_if_not_set')
+
 
 
 CRONJOBS = [
-        ('36 18 * * *', 'sms.views.send_monthly_milk_record_sms'),  # Runs at midnight on the first day of each month
-        # ('0 * * * *', 'sms.views.send_loan_eligibility_status_sms'),  # Runs every day
+        ('0 0 * * *', 'sms.views.send_monthly_milk_record_sms'), 
         
 ]
