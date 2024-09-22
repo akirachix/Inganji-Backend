@@ -1,4 +1,3 @@
-from django_cron import CronJobBase, Schedule
 from datetime import datetime, timedelta
 from django.db.models import Sum
 from .sms_utils import send_sms, validate_phone_number
