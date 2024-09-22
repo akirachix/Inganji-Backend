@@ -8,5 +8,5 @@ def predict_credit_score(farmer_data):
         'score': 60, 
         'credit_worthiness': 'high',
         'loan_range': '50,000 - 70,000',
-        'status': 'eligible'
+        'is_eligible': 'eligible'
     }

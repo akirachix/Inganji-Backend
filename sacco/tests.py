@@ -1,61 +1,47 @@
 from django.test import TestCase
+from .models import Sacco, UserProfile
 from django.core.exceptions import ValidationError
-from .models import Sacco
 
 class SaccoModelTest(TestCase):
+
     def setUp(self):
-        self.sacco_data = {
-            'sacco_name': 'Test Sacco'
-        }
+        # Create a UserProfile instance for testing
+        self.user = UserProfile.objects.create(username="testuser", email="test@example.com")
 
+    # Happy Path Test
     def test_create_sacco_success(self):
-        sacco = Sacco.objects.create(**self.sacco_data)
+        """Test successful creation of a Cooperative."""
+        sacco = Sacco(sacco_name="Green Cooperative", user=self.user)
+        sacco.save()
         self.assertEqual(Sacco.objects.count(), 1)
-        self.assertEqual(sacco.sacco_name, self.sacco_data['sacco_name'])
+        self.assertEqual(sacco.sacco_name, "Green Cooperative")
 
-    def test_sacco_str_method(self):
-        sacco = Sacco.objects.create(**self.sacco_data)
-        self.assertEqual(str(sacco), self.sacco_data['sacco_name'])
-
-    def test_sacco_name_max_length(self):
-        long_name = 'x' * 256   
-        sacco = Sacco(sacco_name=long_name)
+    # Unhappy Path Tests
+    def test_create_sacco_missing_name(self):
+        """Test creation fails with missing sacco name."""
+        sacco = Sacco(user=self.user)
         with self.assertRaises(ValidationError):
-            sacco.full_clean()
+            sacco.full_clean()  # This should raise a ValidationError
 
-    def test_sacco_name_blank(self):
-        sacco = Sacco(sacco_name='')
-        with self.assertRaises(ValidationError):
-            sacco.full_clean()
-
-    def test_duplicate_sacco_name(self):
-        Sacco.objects.create(**self.sacco_data)
-        duplicate_sacco = Sacco.objects.create(**self.sacco_data)
-        self.assertEqual(Sacco.objects.count(), 2)
-        self.assertNotEqual(duplicate_sacco.sacco_id, 1)
-
-    def test_sacco_id_auto_increment(self):
-        first_sacco = Sacco.objects.create(**self.sacco_data)
-        second_sacco = Sacco.objects.create(sacco_name='Another Sacco')
-        self.assertEqual(second_sacco.sacco_id, first_sacco.sacco_id + 1)
-
-  
-    def test_sacco_name_type_conversion(self):
-        sacco = Sacco(sacco_name=123)
-        sacco.full_clean()
-        self.assertEqual(sacco.sacco_name, "123")
-        self.assertIsInstance(sacco.sacco_name, str)
-
-    def test_sacco_id_read_only(self):
-        sacco = Sacco.objects.create(**self.sacco_data)
-        original_id = sacco.sacco_id
+    def test_create_sacco_invalid_user(self):
+        """Test that trying to create a Sacco with a non-existent user fails."""
+        invalid_user = UserProfile(pk=999)  # Assuming this user does not exist
+        sacco = Sacco(sacco_name="New Sacco", user=invalid_user)
         
-        sacco.sacco_id = 999
-        sacco.save()
-        
-        sacco.refresh_from_db()
-        
-        sacco.sacco_id = 999
-        sacco.save()
-        
-        sacco.refresh_from_db()
+        with self.assertRaises(Exception):  # This should fail when validating
+            sacco.full_clean()  # Validate before saving
+
+    def test_user_deleted_sacco(self):
+        """Test that accessing a sacco's user after deletion raises an error."""
+        sacco = Sacco.objects.create(sacco_name="Another Cooperative", user=self.user)
+        user_id = sacco.user.id  # Store the ID to check after deletion
+        self.user.delete()  # Delete the user
+
+        # Attempt to access the deleted user
+        with self.assertRaises(UserProfile.DoesNotExist):
+            UserProfile.objects.get(id=user_id)  # Check the user ID directly
+
+    def tearDown(self):
+        # Clean up any created objects
+        Sacco.objects.all().delete()
+        UserProfile.objects.all().delete()

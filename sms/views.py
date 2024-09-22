@@ -2,20 +2,19 @@ from django_cron import CronJobBase, Schedule
 from datetime import datetime, timedelta
 from django.db.models import Sum
 from .sms_utils import send_sms, validate_phone_number
-# from .models import farmer, milk
+from farmers.models import FarmersManagement
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-# from .sms_service import send_sms
 import requests
 from django.conf import settings
 import logging
-
-
-
+from rest_framework.decorators import api_view
 import requests
+from score.models import *
+from django.views.decorators.csrf import csrf_exempt
+
+
 logger = logging.getLogger(__name__)
-
-
 def send_monthly_milk_record_sms():
     logger.info("Starting milk record SMS job")
     last_month = (datetime.now().replace(day=1) - timedelta(days=1)).strftime('%B %Y')
@@ -61,57 +60,70 @@ def send_monthly_milk_record_sms():
 
 
 
+logger = logging.getLogger(__name__)
 
-def check_eligibility():
-    # farmer_id = request.POST.get('farmer_id')
-    # try:
-    #     farmer = Farmer.objects.get(id=farmer_id)
-    # except Farmer.DoesNotExist:
-    #     return JsonResponse({'error': 'Farmer not found.'}, status=404)
-
-    is_eligible = True
-
-    if is_eligible:
-  
-        message = (f"Dear jfgduhfuddd, "
-                   f"Congratulations! You are eligible for a loan. "
-                   f"The maximum amount you can borrow is {43333333} KSH.")
-    else:
-        message = (f"Dear JWYYEVWW, "
-                   "We regret to inform you that you are not currently eligible for a loan. "
-                  )
-
-    headers = {
-        "Authorization": f"Basic {settings.SMS_LEOPARD_ACCESS_TOKEN}",
-        "Content-Type": "application/json",
-    }
-    payload = {
-        "source": "AkiraChix",
-        "message": message,
-        "destination": ["+254111365595"],
-    }
-
+@api_view(['POST'])
+def check_eligibility(request):
+    farmer_id = request.data.get('farmer_id')
+    print(f"!!!!!!!!!{farmer_id}!!!!!")
+    
     try:
-        response = requests.post(
-            settings.SMS_LEOPARD_API_URL, json=payload, headers=headers
-        )
-        if response.status_code != 200:
-            logger.error(
-                f"Failed to send message: {response.status_code} - {response.text}"
-            )
-            return JsonResponse({'error': 'SMS sending failed.'}, status=500)
-    except requests.RequestException as e:
-        logger.error(f"Request exception occurred: {e}")
-        return JsonResponse({'error': 'Request exception occurred.'}, status=500)
-
-
-    return JsonResponse(response_data)
-
-
-
-
-
-
-
+        farmer = FarmersManagement.objects.get(farmer_id=farmer_id)
+        print(f"$$$$$$$$$$$$$4444{farmer}$$$$$$$$$$$$$$$4")
         
+        score_record = Score.objects.filter(farmer_id=farmer_id).order_by('-last_checked_date').first()
+
+        print(f"&&&&&&&&&&&&&&&&777{score_record}**********")
+        
+        if score_record:
+            is_eligible = score_record.is_eligible
+            loan_range = score_record.loan_range
+
+            if is_eligible:
+                message = (f"Dear {farmer.first_name} {farmer.last_name}, "
+                        f"Congratulations! You are eligible for a loan. "
+                        f"The amount you can borrow is between {loan_range} KSH.")
+
+        else:
+            message = (f"Dear {farmer.first_name} {farmer.last_name},"
+                    "We regret to inform you that you are not currently eligible for a loan.")
+            is_eligible = False
+
+        phone_number = farmer.phone_number 
+
+        headers = {
+            "Authorization": f"Basic {settings.SMS_LEOPARD_ACCESS_TOKEN}",
+            "Content-Type": "application/json",
+        }
+        
+        payload = {
+            "source": "AkiraChix",
+            "message": message,
+            "destination": [{"number": phone_number}],
+        }
+
+        logger.info(f"Sending SMS with payload: {payload}")
+
+        try:
+            response = requests.post(
+                settings.SMS_LEOPARD_API_URL, json=payload, headers=headers
+            )
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("success"):
+                    logger.info("Message sent successfully!")
+                else:
+                    logger.error(f"Failed to send message: {result.get('message')}")
+            else:
+                logger.error(
+                    f"Failed to send message: {response.status_code} - {response.text}"
+                )
+        except requests.RequestException as e:
+            logger.error(f"Request exception occurred: {e}")
+
+        return JsonResponse({'farmer_id': farmer_id, 'is_eligible': is_eligible})
+
+    except FarmersManagement.DoesNotExist:
+        return JsonResponse({'error': 'Farmer does not exist.'}, status=404)
+
 
