@@ -21,5 +21,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path("api/" , include("api.urls")),
     path('auth/', include('api.urls')),
+    path('check-eligibity/', include('sms.urls')),
+
+
 
 ]

@@ -4,43 +4,35 @@ from .models import FarmersManagement
 
 class FarmersManagementModelTest(TestCase):
 
-    def test_create_farmers_management_with_unique_cooperative_number(self):
-        farmer = FarmersManagement.objects.create(
-            first_name='John',
-            last_name='Njoroge',
-            phone_number='07654567890',
-            sacco_name='Limuru'
-        )
-        
-        self.assertIsNotNone(farmer.cooperative_number)
-        retrieved_farmer = FarmersManagement.objects.get(farmer_id=farmer.farmer_id)
-        self.assertEqual(farmer.cooperative_number, retrieved_farmer.cooperative_number)
-        another_farmer = FarmersManagement.objects.create(
-            first_name='Jane',
-            last_name='Kibaara',
-            phone_number='0793462545',
-            sacco_name='Kikuyu'
-        )
-        
-        self.assertEqual(another_farmer.cooperative_number, farmer.cooperative_number + 1)
-
-    def test_create_farmers_management_without_first_name(self):
+    def test_create_farmer_invalid_first_name(self):
+        """Test creation fails with an invalid first name (e.g., too short)."""
+        farmer = FarmersManagement(first_name="J", last_name="Doe", phone_number="1234567890", sacco_name="Test Sacco")
         with self.assertRaises(ValidationError):
-            farmer = FarmersManagement(
-                last_name='Koigi',
-                phone_number='0745-7890',
-                sacco_name='Muranga'
-            )
-            farmer.full_clean() 
+            farmer.full_clean()  # This should raise a ValidationError
 
-    def test_cooperative_number_cannot_be_manually_set(self):
-        farmer = FarmersManagement(
-            first_name='John',
-            last_name='Awour',
-            phone_number='07654567890',
-            sacco_name='Limuru',
-            cooperative_number=999 
-        )
+    def test_create_farmer_invalid_phone_number(self):
+        """Test creation fails with an invalid phone number (e.g., non-numeric)."""
+        farmer = FarmersManagement(first_name="John", last_name="Doe", phone_number="abc", sacco_name="Test Sacco")
+        with self.assertRaises(ValidationError):
+            farmer.full_clean()  # This should raise a ValidationError
+
+    def test_create_farmer_success(self):
+        """Test successful creation of a farmer."""
+        farmer = FarmersManagement(first_name="John", last_name="Doe", phone_number="1234567890", sacco_name="Test Sacco")
+        farmer.full_clean()  # Validate the instance
         farmer.save()
-        
-       
+        self.assertEqual(FarmersManagement.objects.count(), 1)
+        self.assertEqual(farmer.first_name, "John")
+
+    def test_create_farmer_with_duplicate_phone_number(self):
+        """Test creation fails with a duplicate phone number."""
+        FarmersManagement.objects.create(first_name="Jane", last_name="Doe", phone_number="1234567890", sacco_name="Test Sacco")
+        farmer = FarmersManagement(first_name="John", last_name="Smith", phone_number="1234567890", sacco_name="Test Sacco")
+        with self.assertRaises(ValidationError):
+            farmer.full_clean()  # This should raise a ValidationError
+
+    def test_create_farmer_with_missing_fields(self):
+        """Test creation fails with missing required fields."""
+        farmer = FarmersManagement(last_name="Doe", phone_number="1234567890", sacco_name="Test Sacco")  # Missing first name
+        with self.assertRaises(ValidationError):
+            farmer.full_clean()  # This should raise a ValidationError

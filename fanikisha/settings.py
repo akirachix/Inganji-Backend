@@ -63,6 +63,9 @@ INSTALLED_APPS = [
     'authentication',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
+    'sms',
+    'django_crontab',
+    # 'django_cron'
 ]
 
 MIDDLEWARE = [
@@ -70,7 +73,6 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -188,3 +190,18 @@ AUTH_USER_MODEL = 'users.UserProfile'
 AUTHENTICATION_BACKENDS = (
         'django.contrib.auth.backends.ModelBackend',
     )
+
+
+from pathlib import Path
+import os
+from dotenv import load_dotenv, find_dotenv
+load_dotenv()
+
+SMS_LEOPARD_API_URL = os.getenv('SMS_LEOPARD_API_URL', '')
+SMS_LEOPARD_ACCESS_TOKEN = os.getenv('SMS_LEOPARD_ACCESS_TOKEN', '')
+
+
+
+CRONJOBS = [
+    ('0 8 1 *', 'sms.views.send_monthly_milk_record_sms'),
+]

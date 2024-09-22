@@ -12,7 +12,6 @@ from .ml_model import predict_credit_score
 from django.shortcuts import get_object_or_404
 import logging
 from django.contrib.auth import authenticate, login, logout
-from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from users.permissions import IsAdmin, IsSacco, IsCooperative
 from .serializers import UserProfileSerializer
@@ -23,8 +22,7 @@ from django.http import JsonResponse
 from django.contrib.auth import authenticate
 import logging
 from .serializers import UserProfileSerializer
-
-
+from .serializers import ScoreSerializer
 
 
 
@@ -79,25 +77,25 @@ class MilkRecordsListView(APIView):
 
 
 class MilkRecordsDetailView(APIView):
-    def get(self, request, farmers_id):
+    def get(self, request, farmer_id):
         try:
-            milk_records = FarmersManagement.objects.get(pk=farmers_id)
+            milk_records = FarmersManagement.objects.get(pk=farmer_id)
         except FarmersManagement.DoesNotExist:
             return Response({"detail": "Farmer not found."}, status=status.HTTP_404_NOT_FOUND)
         
-        milk_records = MilkRecords.objects.filter(farmer_id=farmers_id)
+        milk_records = MilkRecords.objects.filter(farmer_id=farmer_id)
         serializer = MilkRecordsDetailSerializer(milk_records, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def put(self, request, farmers_id):
+    def put(self, request, farmer_id):
         try:
-            milk_record = FarmersManagement.objects.get(pk=farmers_id)
+            milk_record = FarmersManagement.objects.get(pk=farmer_id)
         except FarmersManagement.DoesNotExist:
             return Response({"detail": "Farmer not found."}, status=status.HTTP_404_NOT_FOUND)
 
         record_id = request.data.get('record_id')
         try:
-            milk_record = MilkRecords.objects.get(pk=record_id, farmer_id=farmers_id)
+            milk_record = MilkRecords.objects.get(pk=record_id, farmer_id=farmer_id)
         except MilkRecords.DoesNotExist:
             return Response({"detail": "Milk record not found."}, status=status.HTTP_404_NOT_FOUND)
 
@@ -162,7 +160,7 @@ logger = logging.getLogger(__name__)
 class ScoreDetailView(APIView):
     def get(self, request, farmer_id):
         try:
-            farmer_instance = get_object_or_404(Farmer, farmer_id=farmer_id)
+            farmer_instance = get_object_or_404(FarmersManagement, farmer_id=farmer_id)
             
             try:
                 score_instance = Score.objects.get(farmer=farmer_instance)
@@ -181,7 +179,7 @@ class ScoreDetailView(APIView):
                     score_instance.credit_worthiness = ml_prediction['credit_worthiness']
                     score_instance.loan_range = ml_prediction['loan_range']
                     score_instance.last_checked_date = timezone.now()
-                    score_instance.status = ml_prediction['status']
+                    score_instance.is_eligible = ml_prediction['is_eligible']
                     score_instance.save()
                 except Exception as e:
                     logger.error(f"Error updating prediction for farmer {farmer_id}: {str(e)}")
@@ -264,6 +262,25 @@ class LogoutView(APIView):
     def post(self, request):
         logout(request)
         return Response({"message": "Logout successful"}, status=status.HTTP_200_OK)
+
+
+class ScoreCreateView(APIView):
+    def post(self, request):
+        farmer_id = request.data.get('farmer_id')
+        
+        try:
+            farmer = FarmersManagement.objects.get(farmer_id=farmer_id)
+        except FarmersManagement.DoesNotExist:
+            return Response({'error': 'Farmer not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = ScoreSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Score created successfully!', 'score_id': serializer.instance.credit_score_id}, status=status.HTTP_201_CREATED)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class AdminOnlyView(APIView):
     permission_classes = [IsAuthenticated, IsAdmin]
