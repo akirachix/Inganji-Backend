@@ -1,12 +1,14 @@
 from django.utils import timezone
 from django.db import models
 from django.db.models import Max
+from django.core.validators import RegexValidator
 
 class FarmersManagement(models.Model):
     farmer_id = models.AutoField(primary_key=True)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
-    phone_number = models.CharField(max_length=15)
+    phone_number = models.CharField(max_length=15,validators=[RegexValidator(r'^\d+$', 'Phone number must be numeric')]
+    )
     created_at = models.DateField(auto_now_add=True)
     cooperative_number = models.CharField(max_length=20, unique=True, blank=True, null=True, editable=False)
     sacco_name = models.CharField(max_length=20)
