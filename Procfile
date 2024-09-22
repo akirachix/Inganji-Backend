@@ -1,0 +1,1 @@
+web: gunicorn fanikisha.wsgi --log-file -
