@@ -2,13 +2,14 @@ from django.urls import path
 from .views import FarmersManagementDetailView, FarmersManagementListView, MilkRecordsDetailView, MilkRecordsListView, CooperativeList, SaccoList, SaccoDetail , ScoreDetailView, ScoreListView
 from .views import SignupView, LoginView, LogoutView, AdminOnlyView, SaccoOnlyView, CooperativeOnlyView
 from . import views
+from .views import ScoreCreateView
 
 
 urlpatterns = [
     path("farmers/", FarmersManagementListView.as_view(), name="farmersmanagement_list_view"),
     path("milk-records/" ,MilkRecordsListView.as_view(),name="milk_records_list_view"),
-    path("milk-records/<int:farmers_id>/" ,MilkRecordsDetailView.as_view(),name="milk_records_detail_view"),
-    path('farmers/<int:farmers_id>/', FarmersManagementDetailView.as_view(), name='farmers_detail_view') ,
+    path("milk-records/<int:farmer_id>/" ,MilkRecordsDetailView.as_view(),name="milk_records_detail_view"),
+    path('farmers/<int:farmer_id>/', FarmersManagementDetailView.as_view(), name='farmers_detail_view') ,
     path('sacco/', SaccoList.as_view(), name='sacco-list'),
     path('sacco/<int:sacco_id>/', SaccoDetail.as_view(), name='sacco-detail'),
     path('cooperative/', CooperativeList.as_view(), name='cooperative-list'),
@@ -21,4 +22,6 @@ urlpatterns = [
     path('sacco-only/', SaccoOnlyView.as_view(), name='sacco_only'),
     path('cooperative-only/', CooperativeOnlyView.as_view(), name='cooperative_only'),
     path('generate_token/', views.generate_token, name='generate_token'),
+    path('scores/', ScoreCreateView.as_view(), name='create_score'),
+
 ]

@@ -1,10 +1,10 @@
 from django.db import models
-# from user.models import User
+from users.models import UserProfile
 
 class Sacco(models.Model):
     sacco_id = models.AutoField(primary_key=True)
     sacco_name = models.CharField(max_length=255)  
-    # user = models.ForeignKey(User ,on_delete=models.CASCADE)
+    user = models.ForeignKey(UserProfile ,on_delete=models.CASCADE)
 
 
     def __str__(self):
