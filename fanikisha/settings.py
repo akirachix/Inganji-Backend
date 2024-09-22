@@ -164,12 +164,11 @@ import os
 from dotenv import load_dotenv, find_dotenv
 load_dotenv()
 
-SMS_LEOPARD_API_URL = os.getenv('SMS_LEOPARD_API_URL', 'default_url_if_not_set')
-SMS_LEOPARD_ACCESS_TOKEN = os.getenv('SMS_LEOPARD_ACCESS_TOKEN', 'default_token_if_not_set')
+SMS_LEOPARD_API_URL = os.getenv('SMS_LEOPARD_API_URL', '')
+SMS_LEOPARD_ACCESS_TOKEN = os.getenv('SMS_LEOPARD_ACCESS_TOKEN', '')
 
 
 
 CRONJOBS = [
-        ('0 0 * * *', 'sms.views.send_monthly_milk_record_sms'), 
-        
+        ('0 8 1 *', 'sms.views.send_monthly_milk_record_sms'),
 ]
