@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     'authentication',
     'api',
     'rest_framework.authtoken',
-    'rest_framework_simplejwt',
 ]
 
 MIDDLEWARE = [
