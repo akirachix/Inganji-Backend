@@ -14,6 +14,7 @@ import logging
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.permissions import IsAuthenticated
 from users.permissions import IsAdmin, IsSacco, IsCooperative
+from authentication.serializers import UserProfileSerializer
 from .serializers import UserProfileSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.views.decorators.csrf import csrf_exempt
@@ -299,15 +300,3 @@ class CooperativeOnlyView(APIView):
 
     def get(self, request):
         return Response({"message": "This is a cooperative-only view."})
-
-@csrf_exempt
-def generate_token(request):
-
-    user,created =UserProfile.objects.get_or_create(username=' ')
-
-    refresh = RefreshToken.for_user(user)
-
-    return JsonResponse({
-        'access':str(refresh.access_token),
-        'refresh':str(refresh)
-})

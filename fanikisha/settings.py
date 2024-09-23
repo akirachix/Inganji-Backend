@@ -22,7 +22,6 @@ import dj_database_url
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 SIMPLE_JWT = {
     'AUTH_COOKIE': 'access_token',  # Cookie name for storing the access token
     'AUTH_COOKIE_SECURE': False,    # Set to True in production
@@ -61,6 +60,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'users',
     'authentication',
+    'api',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'sms',
