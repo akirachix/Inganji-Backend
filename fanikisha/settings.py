@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'sms',
     'django_crontab',
+    "drf_yasg",
     # 'django_cron'
 ]
 
