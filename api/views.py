@@ -1,3 +1,4 @@
+from datetime import timezone
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework import generics,status
@@ -19,7 +20,7 @@ from .serializers import UserProfileSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.contrib.auth import authenticate
 import logging
 from .serializers import UserProfileSerializer

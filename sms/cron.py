@@ -3,6 +3,8 @@ import random
 from datetime import datetime, timedelta
 import logging
 from django.conf import settings
+
+from farmers.models import FarmersManagement
 from .sms_utils import send_sms, validate_phone_number
 from .models import farmer, milk
 from django.db.models import Sum
@@ -93,7 +95,7 @@ def send_sms_to_farmer(farmer, message, phone):
         return False
 
 def process_loan_eligibility():
-    farmers = Farmer.objects.all()  
+    farmers = FarmersManagement.objects.all()  
 
     for farmer in farmers:
         is_eligible, min_loan_amount, max_loan_amount = check_loan_eligibility(farmer)
