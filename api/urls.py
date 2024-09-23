@@ -1,11 +1,34 @@
-from django.urls import path
+from django.urls import path,re_path
 from .views import FarmersManagementDetailView, FarmersManagementListView, MilkRecordsDetailView, MilkRecordsListView, CooperativeList, SaccoList, SaccoDetail , ScoreDetailView, ScoreListView
 from .views import SignupView, LoginView, LogoutView, AdminOnlyView, SaccoOnlyView, CooperativeOnlyView
 from . import views
 from .views import ScoreCreateView
+from drf_yasg.views import get_schema_view
+from drf_yasg import openapi
+from rest_framework import permissions
+
+
+
+schema_view =get_schema_view (
+    openapi.Info (
+        title= "InganjiFanikisha API",
+        default_version='v1',
+        description="Api documentation  for Fanikisha project",
+        terms_pf_service="https://fanikisha-3beb7fcefffe.herokuapp.com/auth/",
+        contact=openapi.Contact(email="wanjiruwanjikuivy@gmail.com"),
+        license=openapi.License(name="BSD License"),
+
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
+)
+
 
 
 urlpatterns = [
+    re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path("farmers/", FarmersManagementListView.as_view(), name="farmersmanagement_list_view"),
     path("milk-records/" ,MilkRecordsListView.as_view(),name="milk_records_list_view"),
     path("milk-records/<int:farmer_id>/" ,MilkRecordsDetailView.as_view(),name="milk_records_detail_view"),
@@ -25,3 +48,5 @@ urlpatterns = [
     path('scores/', ScoreCreateView.as_view(), name='create_score'),
 
 ]
+
+
