@@ -60,7 +60,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'users',
     'authentication',
-    'api',
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'sms',
