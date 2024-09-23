@@ -24,6 +24,8 @@ jobs:
       - name: Set up Git remote for Heroku
         run: |
           git remote -v
+          git remote add heroku https://git.heroku.com/fanikisha.git || echo "Heroku remote already exists"
+
 
 
       - name: Deploy to Heroku
