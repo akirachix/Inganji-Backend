@@ -14,7 +14,7 @@ import logging
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.permissions import IsAuthenticated
 from users.permissions import IsAdmin, IsSacco, IsCooperative
-from authentication.serializers import UserProfileSerializer
+from .serializers import UserProfileSerializer
 from .serializers import UserProfileSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.views.decorators.csrf import csrf_exempt
