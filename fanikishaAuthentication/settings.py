@@ -22,15 +22,6 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-
-SIMPLE_JWT = {
-    'AUTH_COOKIE': 'access_token',  # Cookie name for storing the access token
-    'AUTH_COOKIE_SECURE': False,    # Set to True in production
-    'AUTH_COOKIE_HTTP_ONLY': True,  # HTTP-only cookie to prevent JavaScript access
-    'AUTH_COOKIE_PATH': '/',        # Cookie available site-wide
-    'AUTH_COOKIE_SAMESITE': 'Lax',  # Adjust SameSite settings as needed
-}
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
