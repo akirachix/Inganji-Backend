@@ -206,5 +206,3 @@ SMS_LEOPARD_ACCESS_TOKEN = os.getenv('SMS_LEOPARD_ACCESS_TOKEN', '')
 CRONJOBS = [
     ('0 8 1 *', 'sms.views.send_monthly_milk_record_sms'),
 ]
-
-
