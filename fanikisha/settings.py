@@ -21,14 +21,9 @@ import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+TEMPLATE_DIR = os.path.join(BASE_DIR, "fanikisha", "templates")
 
-SIMPLE_JWT = {
-    'AUTH_COOKIE': 'access_token',  # Cookie name for storing the access token
-    'AUTH_COOKIE_SECURE': False,    # Set to True in production
-    'AUTH_COOKIE_HTTP_ONLY': True,  # HTTP-only cookie to prevent JavaScript access
-    'AUTH_COOKIE_PATH': '/',        # Cookie available site-wide
-    'AUTH_COOKIE_SAMESITE': 'Lax',  # Adjust SameSite settings as needed
-}
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -92,7 +87,7 @@ ROOT_URLCONF = 'fanikisha.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [TEMPLATE_DIR],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -107,6 +102,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'fanikisha.wsgi.application'
 
+
+# Load environment definition file
+ENV_FILE = find_dotenv()
+if ENV_FILE:
+    load_dotenv(ENV_FILE)
+
+# Load Auth0 application settings into memory
+AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN")
+AUTH0_CLIENT_ID = os.environ.get("AUTH0_CLIENT_ID")
+AUTH0_CLIENT_SECRET = os.environ.get("AUTH0_CLIENT_SECRET")
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -192,10 +197,6 @@ AUTHENTICATION_BACKENDS = (
     )
 
 
-from pathlib import Path
-import os
-from dotenv import load_dotenv, find_dotenv
-load_dotenv()
 
 SMS_LEOPARD_API_URL = os.getenv('SMS_LEOPARD_API_URL', '')
 SMS_LEOPARD_ACCESS_TOKEN = os.getenv('SMS_LEOPARD_ACCESS_TOKEN', '')
