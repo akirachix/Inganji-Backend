@@ -2,6 +2,7 @@ from django.utils import timezone
 from django.db import models
 from django.db.models import Max
 from django.core.validators import RegexValidator
+from cooperative.models import Cooperative
 
 class FarmersManagement(models.Model):
     farmer_id = models.AutoField(primary_key=True)
@@ -12,7 +13,8 @@ class FarmersManagement(models.Model):
     created_at = models.DateField(auto_now_add=True)
     cooperative_number = models.CharField(max_length=20, unique=True, blank=True, null=True, editable=False)
     sacco_name = models.CharField(max_length=20)
-    # cooperative_name = models.ForeignKey(Cooperative, on_delete=models.CASCADE)
+    cooperative_id = models.ForeignKey(Cooperative, on_delete=models.CASCADE, null=True, blank=True)
+
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
