@@ -44,7 +44,6 @@ urlpatterns = [
     path('admin-only/', AdminOnlyView.as_view(), name='admin_only'),
     path('sacco-only/', SaccoOnlyView.as_view(), name='sacco_only'),
     path('cooperative-only/', CooperativeOnlyView.as_view(), name='cooperative_only'),
-    path('generate_token/', views.generate_token, name='generate_token'),
     path('scores/', ScoreCreateView.as_view(), name='create_score'),
 
 ]

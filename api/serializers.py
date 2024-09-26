@@ -50,9 +50,8 @@ class ScoreSerializer(serializers.ModelSerializer):
         fields="__all__"
 
 
-
-
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
         fields = "__all__"
+        extra_kwargs = {'password':{'write_only': True}}
