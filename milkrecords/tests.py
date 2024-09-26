@@ -1,87 +1,82 @@
 from django.test import TestCase
 from django.utils import timezone
-from farmers.models import FarmersManagement
-from .models import MilkRecords
 from django.core.exceptions import ValidationError
+from django.contrib.auth import get_user_model
+from farmers.models import FarmersManagement, Cooperative
+from .models import MilkRecords
+User = get_user_model()  # Ensure you are using the User model defined in your project
 class MilkRecordsModelTest(TestCase):
     def setUp(self):
+        # Create a user instance for the Cooperative
+        self.user = User.objects.create_user(
+            username='testuser',
+            password='password123',
+            email='testuser@example.com'
+        )
+        # Create a cooperative instance with a user
+        self.cooperative = Cooperative.objects.create(
+            cooperative_name='Test Cooperative',
+            user=self.user  # Assign the created user to the cooperative
+        )
         self.farmer = FarmersManagement.objects.create(
             first_name='John',
-            last_name='Njoroge',
-            phone_number='0756567890',
-            sacco_name='Test Co-op'
+            last_name='Doe',
+            phone_number='123456789',
+            created_at=timezone.now(),
+            cooperative_id=self.cooperative
         )
     def test_milk_record_creation(self):
-        """Happy path: Milk record is created successfully."""
         milk_record = MilkRecords.objects.create(
             farmer_id=self.farmer,
-            milk_quantity=10,
-            price=50,
-            date=timezone.now().date()
+            milk_quantity=100,
+            price=150,
+            date=timezone.now()
         )
-        self.assertIsInstance(milk_record, MilkRecords)
-        self.assertEqual(milk_record.milk_quantity, 10)
-        self.assertEqual(milk_record.price, 50)
-    def test_milk_record_negative_quantity(self):
-        """Unhappy path: Milk quantity cannot be negative."""
-        milk_record = MilkRecords(
-            farmer_id=self.farmer,
-            milk_quantity=-5,
-            price=50,
-            date=timezone.now().date()
-        )
-        with self.assertRaises(ValidationError):
-            milk_record.full_clean()
-    def test_milk_record_negative_price(self):
-        """Unhappy path: Price cannot be negative."""
-        milk_record = MilkRecords(
-            farmer_id=self.farmer,
-            milk_quantity=10,
-            price=-50,
-            date=timezone.now().date()
-        )
-        with self.assertRaises(ValidationError):
-            milk_record.full_clean()
+        self.assertEqual(milk_record.farmer_id, self.farmer)
+        self.assertEqual(milk_record.milk_quantity, 100)
+        self.assertEqual(milk_record.price, 150)
     def test_milk_record_future_date(self):
-        """Unhappy path: Date cannot be in the future."""
-        future_date = timezone.now().date() + timezone.timedelta(days=1)
+        future_date = timezone.now() + timezone.timedelta(days=1)
         milk_record = MilkRecords(
             farmer_id=self.farmer,
-            milk_quantity=10,
-            price=50,
+            milk_quantity=100,
+            price=150,
             date=future_date
         )
         with self.assertRaises(ValidationError):
             milk_record.full_clean()
-    def test_milk_record_str_method(self):
-        """Happy path: Ensure the __str__ method returns the expected string."""
+    def test_milk_record_negative_price(self):
         milk_record = MilkRecords(
             farmer_id=self.farmer,
-            milk_quantity=10,
-            price=50,
-            date=timezone.now().date()
-        )
-        expected_str = f"Milk record for {self.farmer} on {milk_record.date}"
-        self.assertEqual(str(milk_record), expected_str)
-    def test_milk_record_without_farmer(self):
-        """Unhappy path: MilkRecords cannot be created without a farmer."""
-        milk_record = MilkRecords(
-            farmer_id=None,  # This should raise an error
-            milk_quantity=10,
-            price=50,
-            date=timezone.now().date()
+            milk_quantity=100,
+            price=-150,
+            date=timezone.now()
         )
         with self.assertRaises(ValidationError):
             milk_record.full_clean()
-
-
-
-
-
-
-
-
-
-
-
-
+    def test_milk_record_negative_quantity(self):
+        milk_record = MilkRecords(
+            farmer_id=self.farmer,
+            milk_quantity=-100,
+            price=150,
+            date=timezone.now()
+        )
+        with self.assertRaises(ValidationError):
+            milk_record.full_clean()
+    def test_milk_record_str_method(self):
+        milk_record = MilkRecords.objects.create(
+            farmer_id=self.farmer,
+            milk_quantity=100,
+            price=150,
+            date=timezone.now()
+        )
+        self.assertEqual(str(milk_record), f"Milk record for {self.farmer} on {milk_record.date}")
+    def test_milk_record_without_farmer(self):
+        milk_record = MilkRecords(
+            farmer_id=None,
+            milk_quantity=100,
+            price=150,
+            date=timezone.now()
+        )
+        with self.assertRaises(ValidationError):
+            milk_record.full_clean()

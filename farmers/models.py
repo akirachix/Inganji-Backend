@@ -1,10 +1,13 @@
 from django.db import models
 from django.db.models import Max, F, Value
-from django.db.models.functions import Cast, Replace  # Removed Func import
-from django.db.models import IntegerField
+from django.db.models.functions import Cast, Replace
 from django.utils import timezone
 from django.db import transaction
 from django.core.validators import RegexValidator
+from cooperative.models import Cooperative
+from django.db.models import IntegerField
+
+
 
 
 class FarmersManagement(models.Model):
@@ -18,18 +21,13 @@ class FarmersManagement(models.Model):
     created_at = models.DateField(auto_now_add=True)
     cooperative_number = models.CharField(max_length=20, unique=True, blank=True, null=True, editable=False)
     sacco_name = models.CharField(max_length=20)
-    # cooperative_name = models.ForeignKey(Cooperative, on_delete=models.CASCADE)
-
+    cooperative_id = models.ForeignKey(Cooperative, on_delete=models.CASCADE)
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
-
     def generate_cooperative_number(self):
         current_year = timezone.now().year
         prefix = "C"
-
- 
         with transaction.atomic():
-       
             last_number = FarmersManagement.objects.filter(
                 cooperative_number__startswith=f"{prefix}/{current_year}/"
             ).annotate(
@@ -37,12 +35,8 @@ class FarmersManagement(models.Model):
             ).aggregate(Max('numeric_part'))['numeric_part__max']
             if last_number is None:
                 return f"{prefix}/{current_year}/1"
-
-       
             new_number = last_number + 1
-
             return f"{prefix}/{current_year}/{new_number}"
-
     def save(self, *args, **kwargs):
         if not self.cooperative_number:
             self.cooperative_number = self.generate_cooperative_number()
