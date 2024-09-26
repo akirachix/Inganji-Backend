@@ -35,25 +35,6 @@ class FarmersManagementSerializer(serializers.ModelSerializer):
         fields = ['farmer_id', 'first_name', 'last_name', 'phone_number', 'cooperative_number', 'sacco_name', 'cooperative_id', 'created_at']
         read_only_fields = ['cooperative_number', 'created_at']  
 
-    def create(self, validated_data):
-        
-        farmer = FarmersManagement(**validated_data)
-        farmer.save()  
-        return farmer
-
-    def update(self, instance, validated_data):
-        instance.first_name = validated_data.get('first_name', instance.first_name)
-        instance.last_name = validated_data.get('last_name', instance.last_name)
-        instance.phone_number = validated_data.get('phone_number', instance.phone_number)
-        instance.sacco_name = validated_data.get('sacco_name', instance.sacco_name)
-        instance.cooperative_id = validated_data.get('cooperative_id', instance.cooperative_id)
-
-        if instance.cooperative_id != validated_data.get('cooperative_id'):
-            instance.cooperative_number = instance.generate_cooperative_number()
-
-        instance.save()  
-        return instance
-
 
 class SaccoSerializer(serializers.ModelSerializer):
     class Meta:
