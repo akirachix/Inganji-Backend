@@ -1,3 +1,4 @@
+from datetime import timezone
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework import generics,status
@@ -15,15 +16,16 @@ from django.contrib.auth import authenticate, login, logout
 from rest_framework.permissions import IsAuthenticated
 from users.permissions import IsAdmin, IsSacco, IsCooperative
 from .serializers import UserProfileSerializer
+from .serializers import UserProfileSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import get_user_model
-from django.http import JsonResponse
+from django.http import Http404, JsonResponse
 from django.contrib.auth import authenticate
 import logging
 from .serializers import UserProfileSerializer
 from .serializers import ScoreSerializer
-
+from django.utils import timezone
 
 
 class FarmersManagementListView(APIView):
@@ -157,51 +159,48 @@ class CooperativeList(generics.ListCreateAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 logger = logging.getLogger(__name__)
 
+
 class ScoreDetailView(APIView):
     def get(self, request, farmer_id):
+        farmer_instance = get_object_or_404(FarmersManagement, farmer_id=farmer_id)
+        logger.info(f"Fetched farmer: {farmer_instance}")
+
         try:
-            farmer_instance = get_object_or_404(FarmersManagement, farmer_id=farmer_id)
-            
+            score_instance = Score.objects.get(farmer_id=farmer_instance) 
+            logger.info(f"Fetched score for farmer {farmer_id}: {score_instance}")
+        except Score.DoesNotExist:
+            logger.warning(f"No score found for farmer {farmer_id}")
+            return Response({'error': 'No score found for this farmer'}, status=status.HTTP_404_NOT_FOUND)
+
+        if self.is_prediction_outdated(score_instance):
             try:
-                score_instance = Score.objects.get(farmer=farmer_instance)
-            except Score.DoesNotExist:
-                logger.warning(f"No score found for farmer {farmer_id}")
-                return Response({'error': 'No score found for this farmer'}, status=status.HTTP_404_NOT_FOUND)
+                ml_prediction = predict_credit_score(farmer_id)
+                logger.info(f"ML Prediction for farmer {farmer_id}: {ml_prediction}")
 
-#I should have a farmer's data that will be passed to the ml model
-#I call the ml model to predict the score
-#I create a new score instance if it exists I continue 
+                score_instance.score = ml_prediction['score']
+                score_instance.credit_worthiness = ml_prediction['credit_worthiness']
+                score_instance.loan_range = ml_prediction['loan_range']
+                score_instance.last_checked_date = timezone.now().date()
+                score_instance.is_eligible = ml_prediction['is_eligible']
+                score_instance.save()
+                logger.info(f"Score updated for farmer {farmer_id}.")
+            except KeyError as ke:
+                logger.error(f"KeyError: {str(ke)} - Ensure that all necessary fields are in the prediction response.")
+                return Response({'error': f'Missing field in prediction: {str(ke)}'}, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                logger.error(f"Error updating prediction for farmer {farmer_id}: {str(e)}")
+                return Response({'error': 'Error updating prediction'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-            if self.is_prediction_outdated(score_instance):
-                try:
-                    ml_prediction = predict_credit_score(farmer_id)
-                    score_instance.score = ml_prediction['score']
-                    score_instance.credit_worthiness = ml_prediction['credit_worthiness']
-                    score_instance.loan_range = ml_prediction['loan_range']
-                    score_instance.last_checked_date = timezone.now()
-                    score_instance.is_eligible = ml_prediction['is_eligible']
-                    score_instance.save()
-                except Exception as e:
-                    logger.error(f"Error updating prediction for farmer {farmer_id}: {str(e)}")
-                    return Response({'error': 'Error updating prediction'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        serializer = ScoreSerializer(score_instance)
 
-            serializer = ScoreSerializer(score_instance)
-
-            if 'credit_score' in request.query_params:
-                return Response({'credit_score': serializer.data['score']})
-            elif 'creditworthiness' in request.query_params:
-                return Response({'creditworthiness': serializer.data['credit_worthiness']})
-            elif 'loan_range' in request.query_params:
-                return Response({'loan_range': serializer.data['loan_range']})
-            else:
-                return Response(serializer.data)
-
-        except FarmersManagement.DoesNotExist:
-            logger.warning(f"Farmer not found: {farmer_id}")
-            return Response({'error': 'Farmer not found'}, status=status.HTTP_404_NOT_FOUND)
-        except Exception as e:
-            logger.error(f"Unexpected error for farmer {farmer_id}: {str(e)}")
-            return Response({'error': 'Farmer not found'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        if 'credit_score' in request.query_params:
+            return Response({'credit_score': serializer.data['score']})
+        elif 'creditworthiness' in request.query_params:
+            return Response({'creditworthiness': serializer.data['credit_worthiness']})
+        elif 'loan_range' in request.query_params:
+            return Response({'loan_range': serializer.data['loan_range']})
+        else:
+            return Response(serializer.data)
 
     def is_prediction_outdated(self, score_instance):
         return timezone.now().date() > score_instance.last_checked_date
@@ -252,7 +251,7 @@ class LoginView(APIView):
         if user is not None:
             # refresh = RefreshToken.for_user(user)
             return Response({
-                "message": "logged right"
+                "message": "Successful Log In"
             }, status=status.HTTP_200_OK)
         
         return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -299,15 +298,3 @@ class CooperativeOnlyView(APIView):
 
     def get(self, request):
         return Response({"message": "This is a cooperative-only view."})
-
-@csrf_exempt
-def generate_token(request):
-
-    user,created =UserProfile.objects.get_or_create(username=' ')
-
-    refresh = RefreshToken.for_user(user)
-
-    return JsonResponse({
-        'access':str(refresh.access_token),
-        'refresh':str(refresh)
-})
