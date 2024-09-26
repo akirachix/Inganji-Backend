@@ -50,8 +50,6 @@ class ScoreSerializer(serializers.ModelSerializer):
         fields="__all__"
 
 
-
-
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserProfile
