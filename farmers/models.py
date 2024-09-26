@@ -9,6 +9,7 @@ from django.db.models import IntegerField
 
 
 
+
 class FarmersManagement(models.Model):
     farmer_id = models.AutoField(primary_key=True)
     first_name = models.CharField(max_length=50)
@@ -23,6 +24,7 @@ class FarmersManagement(models.Model):
     cooperative_id = models.ForeignKey(Cooperative, on_delete=models.CASCADE)
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+    
     def generate_cooperative_number(self):
         current_year = timezone.now().year
         prefix = "C"

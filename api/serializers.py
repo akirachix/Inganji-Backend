@@ -27,10 +27,14 @@ class FarmerDetailSerializer(serializers.ModelSerializer):
         model = FarmersManagement
         fields = ['farmer_id','first_name',"last_name" ,'phone_number', 'cooperative_number', 'created_at']
 
+
+
 class FarmersManagementSerializer(serializers.ModelSerializer):
     class Meta:
         model = FarmersManagement
-        fields = ['farmer_id','first_name',"last_name" ,'phone_number', 'cooperative_number', 'created_at']
+        fields = ['farmer_id', 'first_name', 'last_name', 'phone_number', 'cooperative_number', 'sacco_name', 'cooperative_id', 'created_at']
+        read_only_fields = ['cooperative_number', 'created_at']  
+
 
 class SaccoSerializer(serializers.ModelSerializer):
     class Meta:
