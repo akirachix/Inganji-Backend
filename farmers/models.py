@@ -5,6 +5,8 @@ from django.utils import timezone
 from django.db import transaction
 from django.core.validators import RegexValidator
 from cooperative.models import Cooperative
+from django.db.models import IntegerField
+
 
 
 class FarmersManagement(models.Model):
