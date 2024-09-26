@@ -24,6 +24,7 @@ class FarmersManagement(models.Model):
     cooperative_id = models.ForeignKey(Cooperative, on_delete=models.CASCADE)
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+    
     def generate_cooperative_number(self):
         current_year = timezone.now().year
         prefix = "C"

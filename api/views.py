@@ -249,7 +249,6 @@ class LoginView(APIView):
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
-            # refresh = RefreshToken.for_user(user)
             return Response({
                 "message": "Successful Log In"
             }, status=status.HTTP_200_OK)
