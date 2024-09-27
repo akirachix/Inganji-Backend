@@ -27,22 +27,40 @@ from .serializers import UserProfileSerializer
 from .serializers import ScoreSerializer
 from django.utils import timezone
 
+
 class FarmersManagementListView(APIView):
     def get(self, request):
+        cooperative_id = request.query_params.get('cooperative_id', None)
+        sacco_id = request.query_params.get('sacco_id', None)
+
         farmers = FarmersManagement.objects.all()
+
+        if cooperative_id:
+            farmers = farmers.filter(cooperative_id=cooperative_id)
+        
+        if sacco_id:
+            farmers = farmers.filter(sacco_id=sacco_id)
+
+        count = farmers.count()
         serializer = FarmersManagementSerializer(farmers, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response({
+            'count': count,
+            'farmers': serializer.data
+        }, status=status.HTTP_200_OK)
 
     def post(self, request):
         cooperative_id = request.data.get('cooperative_id')
-        if not Cooperative.objects.filter(id=cooperative_id).exists():
+        if not Cooperative.objects.filter(cooperative_id=cooperative_id).exists():
             return Response({"error": "Invalid cooperative ID"}, status=status.HTTP_400_BAD_REQUEST)
+
         serializer = FarmersManagementSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 
 class FarmersManagementDetailView(APIView):
     def get(self, request, farmer_id):

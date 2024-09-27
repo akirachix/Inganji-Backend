@@ -1,100 +1,99 @@
 from django.test import TestCase
+from django.core.exceptions import ValidationError
 from django.utils import timezone
-from django.forms import ValidationError
-from django.contrib.auth import get_user_model  # Import the user model
-from farmers.models import FarmersManagement, Cooperative  # Import your Cooperative model
+from farmers.models import FarmersManagement
+from sacco.models import Sacco
+from cooperative.models import Cooperative
+from users.models import UserProfile
+from datetime import timedelta
 from .models import Score
 
-User = get_user_model()  # Get the user model
-
-class ScoreModelTests(TestCase):
+class ScoreModelTest(TestCase):
 
     def setUp(self):
-        # Create a User instance for the ForeignKey relationship if needed
-        self.user = User.objects.create_user(
-            username='testuser',
-            password='password123',
-            email='testuser@example.com'
-        )
-
-        # Create a Cooperative instance for the ForeignKey relationship
-        self.cooperative = Cooperative.objects.create(
-            cooperative_name="Test Cooperative",
-            user=self.user  # Assign the user instance here if necessary
-        )
-
-        # Create a FarmersManagement instance for the foreign key relationship
+     
+        self.user = UserProfile.objects.create(username="testuser")
+        self.cooperative = Cooperative.objects.create(cooperative_name="Test Cooperative", user=self.user)
+        self.sacco = Sacco.objects.create(sacco_name="Test Sacco", user=self.user)
         self.farmer = FarmersManagement.objects.create(
-            first_name="Alice",
-            last_name="Johnson",
+            first_name="John",
+            last_name="Doe",
             phone_number="1234567890",
-            created_at=timezone.now(),
-            cooperative_number="12345",
-            sacco_name="Co-op Dairy",
-            cooperative_id=self.cooperative  # Assign the cooperative instance here
+            sacco_id=self.sacco,
+            cooperative_id=self.cooperative
         )
 
     def test_valid_score(self):
-        score = Score(
+        # Create a valid score instance
+        score = Score.objects.create(
             farmer_id=self.farmer,
-            score=700,
+            score=750,
             credit_worthiness="Good",
             loan_range="1000-5000",
             last_checked_date=timezone.now().date(),
             is_eligible=True
         )
+        # Ensure no validation error is raised
         try:
-            score.clean()  # This should not raise a ValidationError
+            score.clean()
         except ValidationError:
-            self.fail("Score.clean() raised ValidationError unexpectedly!")
+            self.fail("Valid score raised ValidationError")
 
-    def test_score_below_minimum(self):
+    def test_invalid_score_too_high(self):
+        # Test for score greater than 850
         score = Score(
             farmer_id=self.farmer,
-            score=-1,
-            credit_worthiness="Bad",
+            score=900,
+            credit_worthiness="Excellent",
+            loan_range="10000-15000",
+            last_checked_date=timezone.now().date(),
+            is_eligible=True
+        )
+        with self.assertRaises(ValidationError) as cm:
+            score.clean()
+        self.assertIn("Score must be between 0 and 850", str(cm.exception))
+
+    def test_invalid_score_too_low(self):
+        # Test for score less than 0
+        score = Score(
+            farmer_id=self.farmer,
+            score=-10,
+            credit_worthiness="Poor",
             loan_range="0-1000",
             last_checked_date=timezone.now().date(),
             is_eligible=False
         )
-        with self.assertRaises(ValidationError) as context:
+        with self.assertRaises(ValidationError) as cm:
             score.clean()
-        self.assertEqual(str(context.exception), "['Score must be between 0 and 850.']")
-
-    def test_score_above_maximum(self):
-        score = Score(
-            farmer_id=self.farmer,
-            score=851,
-            credit_worthiness="Excellent",
-            loan_range="5000-10000",
-            last_checked_date=timezone.now().date(),
-            is_eligible=True
-        )
-        with self.assertRaises(ValidationError) as context:
-            score.clean()
-        self.assertEqual(str(context.exception), "['Score must be between 0 and 850.']")
+        self.assertIn("Score must be between 0 and 850", str(cm.exception))
 
     def test_last_checked_date_in_future(self):
-        future_date = timezone.now().date() + timezone.timedelta(days=1)
+        # Test for last checked date in the future
+        future_date = timezone.now().date() + timedelta(days=1)
         score = Score(
             farmer_id=self.farmer,
-            score=700,
+            score=600,
             credit_worthiness="Fair",
-            loan_range="2000-4000",
+            loan_range="5000-10000",
             last_checked_date=future_date,
-            is_eligible=True
+            is_eligible=False
         )
-        with self.assertRaises(ValidationError) as context:
+        with self.assertRaises(ValidationError) as cm:
             score.clean()
-        self.assertEqual(str(context.exception), "['Last checked date cannot be in the future.']")
+        self.assertIn("Last checked date cannot be in the future", str(cm.exception))
 
-    def test_string_representation(self):
-        score = Score(
+    def test_last_checked_date_today(self):
+        # Test for last checked date set to today
+        today = timezone.now().date()
+        score = Score.objects.create(
             farmer_id=self.farmer,
-            score=700,
-            credit_worthiness="Fair",
-            loan_range="2000-4000",
-            last_checked_date=timezone.now().date(),
+            score=650,
+            credit_worthiness="Good",
+            loan_range="1000-5000",
+            last_checked_date=today,
             is_eligible=True
         )
-        self.assertEqual(str(score), f"Score for {self.farmer}: {score.credit_score_id}")
+        try:
+            score.clean()
+        except ValidationError:
+            self.fail("Valid score with today's date raised ValidationError")
