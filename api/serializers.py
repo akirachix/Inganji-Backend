@@ -21,13 +21,14 @@ class MilkRecordsDetailSerializer(serializers.ModelSerializer):
     total_value = serializers.SerializerMethodField()
     first_name = serializers.CharField(source='farmer_id.first_name', read_only=True)
     last_name = serializers.CharField(source='farmer_id.last_name', read_only=True)
+    farmer_id = serializers.PrimaryKeyRelatedField(queryset=FarmersManagement.objects.all())  
 
     def get_total_value(self, obj):
         return obj.milk_quantity * obj.price
 
     class Meta:
         model = MilkRecords
-        fields = ['milk_quantity', 'price', 'total_value', 'first_name', 'last_name']
+        fields = ["farmers_id",'milk_quantity', 'price', 'total_value', 'first_name', 'last_name']
 
 
 class FarmerDetailSerializer(serializers.ModelSerializer):
