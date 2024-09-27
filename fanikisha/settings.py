@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'django_crontab',
     "drf_yasg",
     # 'django_cron'
+
 ]
 
 MIDDLEWARE = [
