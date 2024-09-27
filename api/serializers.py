@@ -11,10 +11,11 @@ from rest_framework import serializers
 class MilkRecordsSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='farmer_id.first_name', read_only=True)
     last_name = serializers.CharField(source='farmer_id.last_name', read_only=True)
+    farmer_id = serializers.PrimaryKeyRelatedField(queryset=FarmersManagement.objects.all())  
 
     class Meta:
         model = MilkRecords
-        fields = ['first_name', 'last_name', 'milk_quantity', 'price', 'date']
+        fields = ['farmer_id', 'first_name', 'last_name', 'milk_quantity', 'price', 'date']
 
 class MilkRecordsDetailSerializer(serializers.ModelSerializer):
     total_value = serializers.SerializerMethodField()
