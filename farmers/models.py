@@ -7,6 +7,8 @@ from django.core.validators import RegexValidator
 from cooperative.models import Cooperative
 from django.db.models import IntegerField
 
+from sacco.models import Sacco
+
 
 
 
@@ -20,8 +22,9 @@ class FarmersManagement(models.Model):
     )
     created_at = models.DateField(auto_now_add=True)
     cooperative_number = models.CharField(max_length=20, unique=True, blank=True, null=True, editable=False)
-    sacco_name = models.CharField(max_length=20)
-    cooperative_id = models.ForeignKey(Cooperative, on_delete=models.CASCADE)
+    sacco_id = models.ForeignKey(Sacco, on_delete=models.CASCADE, related_name='sacco')
+    cooperative_id = models.ForeignKey(Cooperative, on_delete=models.CASCADE, related_name='cooperative')
+
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
     

@@ -6,19 +6,28 @@ from sacco.models import Sacco
 from score.models import Score
 from rest_framework import serializers
 from users.models import UserProfile
+from rest_framework import serializers
 
 class MilkRecordsSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source='farmer_id.first_name', read_only=True)
+    last_name = serializers.CharField(source='farmer_id.last_name', read_only=True)
+
     class Meta:
         model = MilkRecords
-        fields = ['farmer_id', 'milk_quantity', 'price', 'date']
+        fields = ['first_name', 'last_name', 'milk_quantity', 'price', 'date']
 
 class MilkRecordsDetailSerializer(serializers.ModelSerializer):
     total_value = serializers.SerializerMethodField()
+    first_name = serializers.CharField(source='farmer_id.first_name', read_only=True)
+    last_name = serializers.CharField(source='farmer_id.last_name', read_only=True)
+
     def get_total_value(self, obj):
         return obj.milk_quantity * obj.price
+
     class Meta:
         model = MilkRecords
-        fields = ['milk_quantity', 'price', 'total_value']
+        fields = ['milk_quantity', 'price', 'total_value', 'first_name', 'last_name']
+
 
 class FarmerDetailSerializer(serializers.ModelSerializer):
     milk_records = MilkRecordsDetailSerializer(many=True, read_only=True)
@@ -32,7 +41,7 @@ class FarmerDetailSerializer(serializers.ModelSerializer):
 class FarmersManagementSerializer(serializers.ModelSerializer):
     class Meta:
         model = FarmersManagement
-        fields = ['farmer_id', 'first_name', 'last_name', 'phone_number', 'cooperative_number', 'sacco_name', 'cooperative_id', 'created_at']
+        fields = ['farmer_id', 'first_name', 'last_name', 'phone_number', 'cooperative_number', 'sacco_id', 'cooperative_id', 'created_at']
         read_only_fields = ['cooperative_number', 'created_at']  
 
 
