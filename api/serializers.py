@@ -69,3 +69,19 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = "__all__"
         extra_kwargs = {'password':{'write_only': True}}
+
+
+from rest_framework import serializers
+
+class PredictionInputSerializer(serializers.Serializer):
+    OWNS_CAR = serializers.CharField(max_length=10)
+    OWNS_PROPERTY = serializers.CharField(max_length=10)
+    NUM_CHILDREN = serializers.CharField(max_length=10)
+    TOTAL_INCOME = serializers.IntegerField()
+    EDUCATION_TYPE = serializers.CharField(max_length=50)
+    FAMILY_STATUS = serializers.CharField(max_length=50)
+    HOUSING_TYPE = serializers.CharField(max_length=50)
+    AGE = serializers.IntegerField()
+    EMPLOYMENT_DURATION = serializers.IntegerField()
+    OCCUPATION_TYPE = serializers.CharField(max_length=50)
+    NUMBER_OF_FAMILY_MEMBERS = serializers.IntegerField()

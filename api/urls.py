@@ -6,8 +6,8 @@ from .views import ScoreCreateView
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
-
-
+from .views import PredictView
+import predictive_model.views as views
 
 schema_view =get_schema_view (
     openapi.Info (
@@ -45,6 +45,8 @@ urlpatterns = [
     path('sacco-only/', SaccoOnlyView.as_view(), name='sacco_only'),
     path('cooperative-only/', CooperativeOnlyView.as_view(), name='cooperative_only'),
     path('scores/', ScoreCreateView.as_view(), name='create_score'),
+    path('predict/', PredictView.as_view(), name='predict'),
+
 
 ]
 

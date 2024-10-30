@@ -318,3 +318,49 @@ class CooperativeOnlyView(APIView):
 
     def get(self, request):
         return Response({"message": "This is a cooperative-only view."})
+
+
+# api/views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+import joblib
+from .serializers import PredictionInputSerializer
+from predictive_model.utils import process_function, encode_features
+
+
+model_path = "predictive_model/model/trained_rf_model.pkl"
+model = joblib.load(model_path)
+
+class PredictView(APIView):
+    def post(self, request):
+        serializer = PredictionInputSerializer(data=request.data)
+        
+        if serializer.is_valid():
+            validated_data = serializer.validated_data
+            
+            # Clean and preprocess the validated data
+            cleaned_data = process_function([validated_data])
+            encoded_data = encode_features(cleaned_data)
+            
+            # Updated feature columns to match model training
+            feature_columns = [
+                'owns_car', 'owns_property', 'num_children', 'total_income', 
+                'education_type', 'family_status', 'housing_type', 'age', 
+                'employment_duration', 'occupation_type', 'number_of_family_members'
+            ]
+            
+            # Flatten to a 2D list of feature values, using .get() to handle missing fields
+            X_new = [[entry.get(col, 0) for col in feature_columns] for entry in encoded_data]
+
+            # Use the model to make predictions
+            predictions = model.predict(X_new)
+
+            response_data = {
+                "prediction": int(predictions[0]),
+                "eligibility": "Eligible" if predictions[0] == 1 else "Not Eligible"
+            }
+
+            return Response(response_data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
