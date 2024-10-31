@@ -83,12 +83,20 @@ class FarmersManagementDetailView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
 class MilkRecordsListView(APIView):
     def get(self, request):
         milk_records = MilkRecords.objects.all()
-        serializer = MilkRecordsSerializer(milk_records, many=True)
+        unique_records = {}
+        for record in milk_records:
+            identifier = (record.farmer_id.farmer_id)  
+            if identifier not in unique_records:
+                unique_records[identifier] = record
+            else:
+                if record.milk_quantity > unique_records[identifier].milk_quantity:
+                    unique_records[identifier] = record
+
+        unique_records_list = list(unique_records.values())
+        serializer = MilkRecordsSerializer(unique_records_list, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
@@ -97,6 +105,7 @@ class MilkRecordsListView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 class MilkRecordsDetailView(APIView):

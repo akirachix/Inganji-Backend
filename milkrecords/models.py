@@ -8,7 +8,7 @@ class MilkRecords(models.Model):
     record_id = models.AutoField(primary_key=True)
     farmer_id = models.ForeignKey(FarmersManagement, on_delete=models.CASCADE, related_name='milk_records')
     milk_quantity = models.SmallIntegerField()
-    price = models.SmallIntegerField()
+    price = models.SmallIntegerField(default=70) 
     date = models.DateField()
 
     def clean(self):
@@ -28,3 +28,5 @@ class MilkRecords(models.Model):
 
     def __str__(self):
         return f"Milk record for {self.farmer_id} on {self.date}"
+
+    
