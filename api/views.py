@@ -320,47 +320,156 @@ class CooperativeOnlyView(APIView):
         return Response({"message": "This is a cooperative-only view."})
 
 
-# api/views.py
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-import joblib
-from .serializers import PredictionInputSerializer
-from predictive_model.utils import process_function, encode_features
+ 
+# import pickle
+# import pandas as pd
+# from django.http import JsonResponse
+# from django.views import View
+
+# class PredictLoanEligibility(View):
+#     def post(self, request):
+#         # Load the trained model
+#         model_path = "predictive_model/model/rForest_model.pkl"
+#         with open(model_path, "rb") as file:
+#             model = pickle.load(file)
+
+#         # Get data from the request
+#         input_data = request.POST  # Adjust this based on your request structure
+
+#         # Prepare the input data as a DataFrame
+#         cleaned_input_data = {
+#             'owns_car': [int(input_data.get('owns_car', 0))],
+#             'owns_property': [int(input_data.get('owns_property', 0))],
+#             'num_children': [int(input_data.get('num_children', 0))],
+#             'total_income': [float(input_data.get('total_income', 0))],
+#             'education_type': [int(input_data.get('education_type', 0))],
+#             'family_status': [int(input_data.get('family_status', 0))],
+#             'housing_type': [int(input_data.get('housing_type', 0))],
+#             'age': [int(input_data.get('age', 0))],
+#             'employment_duration': [int(input_data.get('employment_duration', 0))],
+#             'occupation_type': [int(input_data.get('occupation_type', 0))],
+#             'number_of_family_members': [int(input_data.get('number_of_family_members', 0))],
+#             'total_dependents': [int(input_data.get('total_dependents', 0))],
+#             'household_size': [int(input_data.get('household_size', 0))],
+#             'is_long_employment': [int(input_data.get('is_long_employment', 0))]
+#         }
+
+#         # Create DataFrame
+#         cleaned_input_df = pd.DataFrame(cleaned_input_data)
+
+#         # Define features in the same order as during training
+#         features = [
+#             'owns_car', 'owns_property', 'num_children', 'total_income',
+#             'education_type', 'family_status', 'housing_type', 'age', 
+#             'employment_duration', 'occupation_type', 'number_of_family_members',
+#             'total_dependents', 'household_size', 'is_long_employment'
+#         ]
+
+#         # Reorder the DataFrame to match the training features
+#         cleaned_input_df = cleaned_input_df[features]
+
+#         # Validate input data
+#         missing_features = [feature for feature in features if feature not in cleaned_input_df.columns]
+#         if missing_features:
+#             return JsonResponse({'error': f"Missing features in input data: {missing_features}"}, status=400)
+
+#         # Make predictions
+#         try:
+#             prediction = model.predict(cleaned_input_df)
+#             return JsonResponse({'prediction': prediction.tolist()})
+#         except ValueError as e:
+#             return JsonResponse({'error': str(e)}, status=400)
 
 
-model_path = "predictive_model/model/trained_rf_model.pkl"
-model = joblib.load(model_path)
 
-class PredictView(APIView):
+
+import pickle
+import pandas as pd
+from django.http import JsonResponse
+from django.views import View
+from predictive_model.models import Prediction
+import json
+
+class PredictLoanEligibility(View):
+    # Mapping for string inputs to numeric values
+    education_type_mapping = {
+        'Primary': 1,
+        'Secondary': 2,
+        'Higher': 3,
+        'Postgraduate': 4
+    }
+    
+    family_status_mapping = {
+        'Single': 0,
+        'Married': 1,
+        'Divorced': 2,
+        'Widowed': 3,
+        'Separated': 4
+    }
+    
+    housing_type_mapping = {
+        'Rent': 0,
+        'Own': 1,
+        'Mortgage': 2,
+        'Other': 3
+    }
+
     def post(self, request):
-        serializer = PredictionInputSerializer(data=request.data)
+        # Load the trained model
+        model_path = "predictive_model/model/rForest_model.pkl" 
+        with open(model_path, "rb") as file:
+            model = pickle.load(file)
+
+        # Get data from the request
+        try:
+            input_data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        # Prepare the input data as a DataFrame
+        cleaned_input_data = {
+            'owns_car': int(input_data.get('owns_car', 'no') == 'yes'),
+            'owns_property': int(input_data.get('owns_property', 'no') == 'yes'),
+            'num_children': int(input_data.get('num_children', 0)),
+            'total_income': float(input_data.get('total_income', 0)),
+            'education_type': self.education_type_mapping.get(input_data.get('education_type', 'unknown'), -1),
+            'family_status': self.family_status_mapping.get(input_data.get('family_status', 'unknown'), -1),
+            'housing_type': self.housing_type_mapping.get(input_data.get('housing_type', 'unknown'), -1),
+            'age': int(input_data.get('age', 0)),
+            'employment_duration': int(input_data.get('employment_duration', 0)),
+            'number_of_family_members': int(input_data.get('number_of_family_members', 0)),
+            'total_dependents': int(input_data.get('total_dependents', 0)),
+            'is_long_employment': int(input_data.get('is_long_employment', 'no') == 'yes')
+        }
+
+        # Create DataFrame
+        cleaned_input_df = pd.DataFrame([cleaned_input_data])
+
+        # Validate input data
+        features = [
+            'owns_car', 'owns_property', 'num_children', 'total_income',
+            'education_type', 'family_status', 'housing_type', 'age', 
+            'employment_duration', 'number_of_family_members',
+            'total_dependents', 'is_long_employment'
+        ]
         
-        if serializer.is_valid():
-            validated_data = serializer.validated_data
-            
-            # Clean and preprocess the validated data
-            cleaned_data = process_function([validated_data])
-            encoded_data = encode_features(cleaned_data)
-            
-            # Updated feature columns to match model training
-            feature_columns = [
-                'owns_car', 'owns_property', 'num_children', 'total_income', 
-                'education_type', 'family_status', 'housing_type', 'age', 
-                'employment_duration', 'occupation_type', 'number_of_family_members'
-            ]
-            
-            # Flatten to a 2D list of feature values, using .get() to handle missing fields
-            X_new = [[entry.get(col, 0) for col in feature_columns] for entry in encoded_data]
+        # Reorder the DataFrame to match the training features
+        cleaned_input_df = cleaned_input_df[features]
 
-            # Use the model to make predictions
-            predictions = model.predict(X_new)
+        # Check for missing features
+        missing_features = [feature for feature in features if feature not in cleaned_input_df.columns]
+        if missing_features:
+            return JsonResponse({'error': f"Missing features in input data: {missing_features}"}, status=400)
 
-            response_data = {
-                "prediction": int(predictions[0]),
-                "eligibility": "Eligible" if predictions[0] == 1 else "Not Eligible"
-            }
+        # Make predictions
+        try:
+            prediction = model.predict(cleaned_input_df)
 
-            return Response(response_data, status=status.HTTP_200_OK)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # Determine eligibility based on the prediction
+            eligibility = "Eligible" if prediction[0] == 1 else "Not Eligible" 
+            
+            Prediction.objects.create(prediction_result=prediction[0], **cleaned_input_data)
+
+            return JsonResponse({'prediction': prediction.tolist(), 'eligibility': eligibility})
+        except ValueError as e:
+            return JsonResponse({'error': str(e)}, status=400)

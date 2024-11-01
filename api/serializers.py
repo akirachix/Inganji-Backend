@@ -71,17 +71,19 @@ class UserProfileSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password':{'write_only': True}}
 
 
-from rest_framework import serializers
 
-class PredictionInputSerializer(serializers.Serializer):
-    OWNS_CAR = serializers.CharField(max_length=10)
-    OWNS_PROPERTY = serializers.CharField(max_length=10)
-    NUM_CHILDREN = serializers.CharField(max_length=10)
-    TOTAL_INCOME = serializers.IntegerField()
-    EDUCATION_TYPE = serializers.CharField(max_length=50)
-    FAMILY_STATUS = serializers.CharField(max_length=50)
-    HOUSING_TYPE = serializers.CharField(max_length=50)
-    AGE = serializers.IntegerField()
-    EMPLOYMENT_DURATION = serializers.IntegerField()
-    OCCUPATION_TYPE = serializers.CharField(max_length=50)
-    NUMBER_OF_FAMILY_MEMBERS = serializers.IntegerField()
+class LoanEligibilityInputSerializer(serializers.Serializer):
+    owns_car = serializers.ChoiceField(choices=[('yes', 'Yes'), ('no', 'No')])
+    owns_property = serializers.ChoiceField(choices=[('yes', 'Yes'), ('no', 'No')])
+    num_children = serializers.IntegerField()
+    total_income = serializers.FloatField()
+    education_type = serializers.CharField(max_length=50)
+    family_status = serializers.CharField(max_length=50)
+    housing_type = serializers.CharField(max_length=50)
+    age = serializers.IntegerField()
+    employment_duration = serializers.FloatField()
+    occupation_type = serializers.CharField(max_length=50)
+    number_of_family_members = serializers.IntegerField()
+    total_dependents = serializers.IntegerField()
+    household_size = serializers.IntegerField()
+    is_long_employment = serializers.ChoiceField(choices=[('yes', 'Yes'), ('no', 'No')])
