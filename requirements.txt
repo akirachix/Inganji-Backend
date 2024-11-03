@@ -24,3 +24,10 @@ python-dotenv== 0.19.2
 urllib3== 2.2.3
 django-cors-headers==4.4.0
 django-crontab==0.7.1
+Django>=4.0,<5.0
+djangorestframework>=3.0
+psycopg2-binary>=2.9
+joblib>=1.0
+scikit-learn>=0.24
+pandas>=1.0
+numpy>=1.19
