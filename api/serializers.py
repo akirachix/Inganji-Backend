@@ -88,3 +88,21 @@ class UserProfileSerializer(serializers.ModelSerializer):
         model = UserProfile
         fields = "__all__"
         extra_kwargs = {'password':{'write_only': True}}
+
+
+
+class LoanEligibilityInputSerializer(serializers.Serializer):
+    owns_car = serializers.ChoiceField(choices=[('yes', 'Yes'), ('no', 'No')])
+    owns_property = serializers.ChoiceField(choices=[('yes', 'Yes'), ('no', 'No')])
+    num_children = serializers.IntegerField()
+    total_income = serializers.FloatField()
+    education_type = serializers.CharField(max_length=50)
+    family_status = serializers.CharField(max_length=50)
+    housing_type = serializers.CharField(max_length=50)
+    age = serializers.IntegerField()
+    employment_duration = serializers.FloatField()
+    occupation_type = serializers.CharField(max_length=50)
+    number_of_family_members = serializers.IntegerField()
+    total_dependents = serializers.IntegerField()
+    household_size = serializers.IntegerField()
+    is_long_employment = serializers.ChoiceField(choices=[('yes', 'Yes'), ('no', 'No')])
