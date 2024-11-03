@@ -1,21 +1,17 @@
 from django.db import models
 
 class Prediction(models.Model):
-    """Model to store prediction requests and their results."""
-
-    # Choices for car ownership
+   
     CAR_OWNERSHIP_CHOICES = [
         ('Y', 'Yes'),
         ('N', 'No')
     ]
     
-    # Choices for realty ownership
     REALTY_OWNERSHIP_CHOICES = [
         ('Y', 'Yes'),
         ('N', 'No')
     ]
     
-    # Education type choices
     EDUCATION_TYPE_CHOICES = [
         ('Primary', 'Primary'),
         ('Secondary', 'Secondary'),
@@ -23,7 +19,6 @@ class Prediction(models.Model):
         ('Postgraduate', 'Postgraduate'),
     ]
     
-    # Family status choices
     FAMILY_STATUS_CHOICES = [
         ('Single', 'Single'),
         ('Married', 'Married'),
@@ -32,7 +27,6 @@ class Prediction(models.Model):
         ('Separated', 'Separated'),
     ]
     
-    # Housing type choices
     HOUSING_TYPE_CHOICES = [
         ('Rent', 'Rent'),
         ('Own', 'Own'),
@@ -40,7 +34,6 @@ class Prediction(models.Model):
         ('Other', 'Other'),
     ]
 
-    # Fields for the prediction input
     owns_car = models.CharField(
         max_length=1, 
         choices=CAR_OWNERSHIP_CHOICES,
