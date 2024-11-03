@@ -320,67 +320,6 @@ class CooperativeOnlyView(APIView):
         return Response({"message": "This is a cooperative-only view."})
 
 
- 
-# import pickle
-# import pandas as pd
-# from django.http import JsonResponse
-# from django.views import View
-
-# class PredictLoanEligibility(View):
-#     def post(self, request):
-#         # Load the trained model
-#         model_path = "predictive_model/model/rForest_model.pkl"
-#         with open(model_path, "rb") as file:
-#             model = pickle.load(file)
-
-#         # Get data from the request
-#         input_data = request.POST  # Adjust this based on your request structure
-
-#         # Prepare the input data as a DataFrame
-#         cleaned_input_data = {
-#             'owns_car': [int(input_data.get('owns_car', 0))],
-#             'owns_property': [int(input_data.get('owns_property', 0))],
-#             'num_children': [int(input_data.get('num_children', 0))],
-#             'total_income': [float(input_data.get('total_income', 0))],
-#             'education_type': [int(input_data.get('education_type', 0))],
-#             'family_status': [int(input_data.get('family_status', 0))],
-#             'housing_type': [int(input_data.get('housing_type', 0))],
-#             'age': [int(input_data.get('age', 0))],
-#             'employment_duration': [int(input_data.get('employment_duration', 0))],
-#             'occupation_type': [int(input_data.get('occupation_type', 0))],
-#             'number_of_family_members': [int(input_data.get('number_of_family_members', 0))],
-#             'total_dependents': [int(input_data.get('total_dependents', 0))],
-#             'household_size': [int(input_data.get('household_size', 0))],
-#             'is_long_employment': [int(input_data.get('is_long_employment', 0))]
-#         }
-
-#         # Create DataFrame
-#         cleaned_input_df = pd.DataFrame(cleaned_input_data)
-
-#         # Define features in the same order as during training
-#         features = [
-#             'owns_car', 'owns_property', 'num_children', 'total_income',
-#             'education_type', 'family_status', 'housing_type', 'age', 
-#             'employment_duration', 'occupation_type', 'number_of_family_members',
-#             'total_dependents', 'household_size', 'is_long_employment'
-#         ]
-
-#         # Reorder the DataFrame to match the training features
-#         cleaned_input_df = cleaned_input_df[features]
-
-#         # Validate input data
-#         missing_features = [feature for feature in features if feature not in cleaned_input_df.columns]
-#         if missing_features:
-#             return JsonResponse({'error': f"Missing features in input data: {missing_features}"}, status=400)
-
-#         # Make predictions
-#         try:
-#             prediction = model.predict(cleaned_input_df)
-#             return JsonResponse({'prediction': prediction.tolist()})
-#         except ValueError as e:
-#             return JsonResponse({'error': str(e)}, status=400)
-
-
 
 import pickle
 import pandas as pd
