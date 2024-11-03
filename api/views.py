@@ -382,13 +382,13 @@ class CooperativeOnlyView(APIView):
 
 
 
-
 import pickle
 import pandas as pd
 from django.http import JsonResponse
 from django.views import View
 from predictive_model.models import Prediction
 import json
+from datetime import datetime  # Import the datetime module
 
 class PredictLoanEligibility(View):
     # Mapping for string inputs to numeric values
@@ -466,10 +466,21 @@ class PredictLoanEligibility(View):
             prediction = model.predict(cleaned_input_df)
 
             # Determine eligibility based on the prediction
-            eligibility = "Eligible" if prediction[0] == 1 else "Not Eligible" 
+            eligibility = "Eligible" if prediction[0] == 1 else "Not Eligible"
+            
+            # Determine credit worthiness
+            credit_worthiness = "High" if eligibility == "Eligible" else "Low"
+            
+            # Get the current date
+            current_date = datetime.now().date().isoformat()
             
             Prediction.objects.create(prediction_result=prediction[0], **cleaned_input_data)
 
-            return JsonResponse({'prediction': prediction.tolist(), 'eligibility': eligibility})
+            return JsonResponse({
+                'prediction': prediction.tolist(),
+                'eligibility': eligibility,
+                'credit_worthiness': credit_worthiness,
+                'current_date': current_date
+            })
         except ValueError as e:
             return JsonResponse({'error': str(e)}, status=400)
