@@ -60,6 +60,7 @@ INSTALLED_APPS = [
     'sms',
     'django_crontab',
     "drf_yasg",
+    'predictive_model',
     # 'django_cron'
 
 ]
