@@ -388,10 +388,9 @@ from django.http import JsonResponse
 from django.views import View
 from predictive_model.models import Prediction
 import json
-from datetime import datetime  # Import the datetime module
+from datetime import datetime
 
 class PredictLoanEligibility(View):
-    # Mapping for string inputs to numeric values
     education_type_mapping = {
         'Primary': 1,
         'Secondary': 2,
@@ -415,18 +414,15 @@ class PredictLoanEligibility(View):
     }
 
     def post(self, request):
-        # Load the trained model
         model_path = "predictive_model/model/rForest_model.pkl" 
         with open(model_path, "rb") as file:
             model = pickle.load(file)
 
-        # Get data from the request
         try:
             input_data = json.loads(request.body)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
-        # Prepare the input data as a DataFrame
         cleaned_input_data = {
             'owns_car': int(input_data.get('owns_car', 'no') == 'yes'),
             'owns_property': int(input_data.get('owns_property', 'no') == 'yes'),
@@ -442,10 +438,8 @@ class PredictLoanEligibility(View):
             'is_long_employment': int(input_data.get('is_long_employment', 'no') == 'yes')
         }
 
-        # Create DataFrame
         cleaned_input_df = pd.DataFrame([cleaned_input_data])
 
-        # Validate input data
         features = [
             'owns_car', 'owns_property', 'num_children', 'total_income',
             'education_type', 'family_status', 'housing_type', 'age', 
@@ -453,25 +447,17 @@ class PredictLoanEligibility(View):
             'total_dependents', 'is_long_employment'
         ]
         
-        # Reorder the DataFrame to match the training features
         cleaned_input_df = cleaned_input_df[features]
 
-        # Check for missing features
         missing_features = [feature for feature in features if feature not in cleaned_input_df.columns]
         if missing_features:
             return JsonResponse({'error': f"Missing features in input data: {missing_features}"}, status=400)
 
-        # Make predictions
         try:
             prediction = model.predict(cleaned_input_df)
 
-            # Determine eligibility based on the prediction
-            eligibility = "Eligible" if prediction[0] == 1 else "Not Eligible"
+            eligibility = "Eligible" if prediction[0] == 1 else "Not Eligible" 
             
-            # Determine credit worthiness
-            credit_worthiness = "High" if eligibility == "Eligible" else "Low"
-            
-            # Get the current date
             current_date = datetime.now().date().isoformat()
             
             Prediction.objects.create(prediction_result=prediction[0], **cleaned_input_data)
@@ -479,7 +465,6 @@ class PredictLoanEligibility(View):
             return JsonResponse({
                 'prediction': prediction.tolist(),
                 'eligibility': eligibility,
-                'credit_worthiness': credit_worthiness,
                 'current_date': current_date
             })
         except ValueError as e:
