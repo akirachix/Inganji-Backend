@@ -4,7 +4,6 @@ from farmers.models import FarmersManagement
 from cooperative.models import Cooperative
 from sacco.models import Sacco
 from score.models import Score
-from rest_framework import serializers
 from users.models import UserProfile
 from rest_framework import serializers
 
