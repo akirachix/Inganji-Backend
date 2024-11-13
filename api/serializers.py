@@ -1,10 +1,13 @@
 from rest_framework import serializers
+from api import models
 from milkrecords.models import MilkRecords
 from farmers.models import FarmersManagement
 from cooperative.models import Cooperative
 from sacco.models import Sacco
 from score.models import Score
 from users.models import UserProfile
+from django.db.models import Sum, F
+
 from rest_framework import serializers
 from django.db.models import Sum
 
@@ -35,7 +38,10 @@ class MilkRecordsDetailSerializer(serializers.ModelSerializer):
     last_name = serializers.CharField(source='farmer_id.last_name', read_only=True)
 
     def get_total_value(self, obj):
-        return obj.milk_quantity * obj.price
+        total_value = MilkRecords.objects.filter(farmer_id=obj.farmer_id) \
+        .aggregate(total=Sum(F('milk_quantity') * F('price')))['total']
+        return total_value
+
 
     def get_total_milk_value(self, obj):
         total = MilkRecords.objects.filter(farmer_id=obj.farmer_id).aggregate(

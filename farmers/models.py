@@ -18,7 +18,12 @@ class FarmersManagement(models.Model):
     last_name = models.CharField(max_length=50)
     phone_number = models.CharField(
         max_length=15,
-        validators=[RegexValidator(r'^\d+$', 'Phone number must be numeric')]
+        validators=[
+            RegexValidator(
+                r'^\+250\d{9}$', 
+                'Phone number must be in the format +250XXXXXXXXX (Rwandan number format)'
+            )
+        ]
     )
     created_at = models.DateField(auto_now_add=True)
     cooperative_number = models.CharField(max_length=20, unique=True, blank=True, null=True, editable=False)
