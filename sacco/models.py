@@ -3,7 +3,7 @@ from users.models import UserProfile
 
 class Sacco(models.Model):
     sacco_id = models.AutoField(primary_key=True)
-    sacco_name = models.CharField(max_length=255)  
+    sacco_name = models.CharField(max_length=255, unique=True)    
     user = models.ForeignKey(UserProfile ,on_delete=models.CASCADE)
 
 

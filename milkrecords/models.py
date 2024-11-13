@@ -28,3 +28,5 @@ class MilkRecords(models.Model):
 
     def __str__(self):
         return f"Milk record for {self.farmer_id} on {self.date}"
+
+    
