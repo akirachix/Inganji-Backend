@@ -6,27 +6,41 @@ from sacco.models import Sacco
 from score.models import Score
 from users.models import UserProfile
 from rest_framework import serializers
+from django.db.models import Sum, F
+
+from django.db.models import Sum
+
 
 class MilkRecordsSerializer(serializers.ModelSerializer):
+    total_milk_value = serializers.SerializerMethodField()
     first_name = serializers.CharField(source='farmer_id.first_name', read_only=True)
     last_name = serializers.CharField(source='farmer_id.last_name', read_only=True)
-    farmer_id = serializers.PrimaryKeyRelatedField(queryset=FarmersManagement.objects.all())  
+    farmer_id = serializers.PrimaryKeyRelatedField(queryset=FarmersManagement.objects.all())
+
+    def get_total_milk_value(self, obj):
+        total = MilkRecords.objects.filter(farmer_id=obj.farmer_id).aggregate(
+            total_value=Sum(F('milk_quantity') * F('price'))
+        )['total_value']
+        return total
 
     class Meta:
         model = MilkRecords
-        fields = ['farmer_id', 'first_name', 'last_name', 'milk_quantity', 'price', 'date']
+        fields = ['farmer_id', 'first_name', 'last_name', 'milk_quantity', 'price', 'date', "total_milk_value"]
 
 class MilkRecordsDetailSerializer(serializers.ModelSerializer):
     total_value = serializers.SerializerMethodField()
+    total_milk_value = serializers.SerializerMethodField()
     first_name = serializers.CharField(source='farmer_id.first_name', read_only=True)
     last_name = serializers.CharField(source='farmer_id.last_name', read_only=True)
 
     def get_total_value(self, obj):
         return obj.milk_quantity * obj.price
 
-    class Meta:
-        model = MilkRecords
-        fields = ['milk_quantity', 'price', 'total_value', 'first_name', 'last_name']
+    def get_total_milk_value(self, obj):
+        total = MilkRecords.objects.filter(farmer_id=obj.farmer_id).aggregate(
+            total_value=Sum(F('milk_quantity') * F('price'))
+        )['total_value']
+        return total
 
 
 class FarmerDetailSerializer(serializers.ModelSerializer):
