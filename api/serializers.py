@@ -1,14 +1,13 @@
 from rest_framework import serializers
+from api import models
 from milkrecords.models import MilkRecords
 from farmers.models import FarmersManagement
 from cooperative.models import Cooperative
 from sacco.models import Sacco
 from score.models import Score
 from users.models import UserProfile
-from rest_framework import serializers
 from django.db.models import Sum, F
 
-from django.db.models import Sum
 
 
 class MilkRecordsSerializer(serializers.ModelSerializer):
@@ -42,6 +41,9 @@ class MilkRecordsDetailSerializer(serializers.ModelSerializer):
         )['total_value']
         return total
 
+    class Meta:
+        model = MilkRecords
+        fields = ['milk_quantity', 'price', 'total_value', 'total_milk_value', 'first_name', 'last_name']
 
 class FarmerDetailSerializer(serializers.ModelSerializer):
     milk_records = MilkRecordsDetailSerializer(many=True, read_only=True)
