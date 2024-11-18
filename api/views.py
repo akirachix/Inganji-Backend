@@ -330,6 +330,96 @@ class CooperativeOnlyView(APIView):
 
 
 
+# import pickle
+# import pandas as pd
+# from django.http import JsonResponse
+# from django.views import View
+# from predictive_model.models import Prediction
+# import json
+# from datetime import datetime
+
+# class PredictLoanEligibility(View):
+#     education_type_mapping = {
+#         'Primary': 1,
+#         'Secondary': 2,
+#         'Higher': 3,
+#         'Postgraduate': 4
+#     }
+    
+#     family_status_mapping = {
+#         'Single': 0,
+#         'Married': 1,
+#         'Divorced': 2,
+#         'Widowed': 3,
+#         'Separated': 4
+#     }
+    
+#     housing_type_mapping = {
+#         'Rent': 0,
+#         'Own': 1,
+#         'Mortgage': 2,
+#         'Other': 3
+#     }
+
+#     def post(self, request):
+#         model_path = "predictive_model/model/rForest_model.pkl" 
+#         with open(model_path, "rb") as file:
+#             model = pickle.load(file)
+
+#         try:
+#             input_data = json.loads(request.body)
+#         except json.JSONDecodeError:
+#             return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+#         cleaned_input_data = {
+#             'owns_car': int(input_data.get('owns_car', 'no') == 'yes'),
+#             'owns_property': int(input_data.get('owns_property', 'no') == 'yes'),
+#             'num_children': int(input_data.get('num_children', 0)),
+#             'total_income': float(input_data.get('total_income', 0)),
+#             'education_type': self.education_type_mapping.get(input_data.get('education_type', 'unknown'), -1),
+#             'family_status': self.family_status_mapping.get(input_data.get('family_status', 'unknown'), -1),
+#             'housing_type': self.housing_type_mapping.get(input_data.get('housing_type', 'unknown'), -1),
+#             'age': int(input_data.get('age', 0)),
+#             'employment_duration': int(input_data.get('employment_duration', 0)),
+#             'number_of_family_members': int(input_data.get('number_of_family_members', 0)),
+#             'total_dependents': int(input_data.get('total_dependents', 0)),
+#             'is_long_employment': int(input_data.get('is_long_employment', 'no') == 'yes')
+#         }
+
+#         cleaned_input_df = pd.DataFrame([cleaned_input_data])
+
+#         features = [
+#             'owns_car', 'owns_property', 'num_children', 'total_income',
+#             'education_type', 'family_status', 'housing_type', 'age', 
+#             'employment_duration', 'number_of_family_members',
+#             'total_dependents', 'is_long_employment'
+#         ]
+        
+#         cleaned_input_df = cleaned_input_df[features]
+
+#         missing_features = [feature for feature in features if feature not in cleaned_input_df.columns]
+#         if missing_features:
+#             return JsonResponse({'error': f"Missing features in input data: {missing_features}"}, status=400)
+
+#         try:
+#             prediction = model.predict(cleaned_input_df)
+
+#             eligibility = "Eligible" if prediction[0] == 1 else "Not Eligible" 
+            
+#             current_date = datetime.now().date().isoformat()
+            
+#             Prediction.objects.create(prediction_result=prediction[0], **cleaned_input_data)
+
+#             return JsonResponse({
+#                 'prediction': prediction.tolist(),
+#                 'eligibility': eligibility,
+#                 'current_date': current_date
+#             })
+#         except ValueError as e:
+#             return JsonResponse({'error': str(e)}, status=400)
+
+
+
 import pickle
 import pandas as pd
 from django.http import JsonResponse
@@ -337,8 +427,11 @@ from django.views import View
 from predictive_model.models import Prediction
 import json
 from datetime import datetime
+from farmers.models import FarmersManagement
+
 
 class PredictLoanEligibility(View):
+    # Mappings for categorical data
     education_type_mapping = {
         'Primary': 1,
         'Secondary': 2,
@@ -361,16 +454,32 @@ class PredictLoanEligibility(View):
         'Other': 3
     }
 
+    # POST method to predict eligibility
     def post(self, request):
-        model_path = "predictive_model/model/rForest_model.pkl" 
+        # Load the pre-trained model
+        model_path = "predictive_model/model/rForest_model.pkl"
         with open(model_path, "rb") as file:
             model = pickle.load(file)
 
         try:
+            # Parse the input data from the request body
             input_data = json.loads(request.body)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
+        # Extract the farmer_id from the request
+        farmer_id = input_data.get('farmer_id')
+        if not farmer_id:
+            return JsonResponse({'error': 'Farmer ID is required'}, status=400)
+
+        # Verify the farmer exists in the database
+        try:
+            # Use farmer_id if that's the field name for the primary key
+            farmer = FarmersManagement.objects.get(farmer_id=farmer_id)  # Assuming 'farmer_id' is the correct field name
+        except FarmersManagement.DoesNotExist:
+            return JsonResponse({'error': 'Farmer not found'}, status=404)
+
+        # Clean and prepare the input data for prediction
         cleaned_input_data = {
             'owns_car': int(input_data.get('owns_car', 'no') == 'yes'),
             'owns_property': int(input_data.get('owns_property', 'no') == 'yes'),
@@ -386,30 +495,35 @@ class PredictLoanEligibility(View):
             'is_long_employment': int(input_data.get('is_long_employment', 'no') == 'yes')
         }
 
+        # Convert the cleaned input data into a DataFrame
         cleaned_input_df = pd.DataFrame([cleaned_input_data])
 
+        # Define the features for the model
         features = [
             'owns_car', 'owns_property', 'num_children', 'total_income',
             'education_type', 'family_status', 'housing_type', 'age', 
             'employment_duration', 'number_of_family_members',
             'total_dependents', 'is_long_employment'
         ]
-        
+
         cleaned_input_df = cleaned_input_df[features]
 
-        missing_features = [feature for feature in features if feature not in cleaned_input_df.columns]
-        if missing_features:
-            return JsonResponse({'error': f"Missing features in input data: {missing_features}"}, status=400)
-
         try:
+            # Predict eligibility using the trained model
             prediction = model.predict(cleaned_input_df)
 
-            eligibility = "Eligible" if prediction[0] == 1 else "Not Eligible" 
-            
-            current_date = datetime.now().date().isoformat()
-            
-            Prediction.objects.create(prediction_result=prediction[0], **cleaned_input_data)
+            eligibility = "Eligible" if prediction[0] == 1 else "Not Eligible"
 
+            current_date = datetime.now().date().isoformat()
+
+            # Save the prediction to the database with the farmer_id
+            Prediction.objects.create(
+                farmer_id=farmer.farmer_id,  # Use 'farmer_id' here if it's the correct field
+                prediction_result=prediction[0],
+                **cleaned_input_data
+            )
+
+            # Return the prediction result as a JSON response
             return JsonResponse({
                 'prediction': prediction.tolist(),
                 'eligibility': eligibility,
@@ -417,3 +531,32 @@ class PredictLoanEligibility(View):
             })
         except ValueError as e:
             return JsonResponse({'error': str(e)}, status=400)
+
+    def get(self, request):
+        # Retrieve farmer_id from query parameters
+        farmer_id = request.GET.get('id')
+        
+        if not farmer_id:
+            return JsonResponse({'error': 'Farmer ID is required'}, status=400)
+
+        try:
+            # Fetch prediction record associated with the farmer_id
+            prediction = Prediction.objects.filter(farmer_id=farmer_id).first()
+            
+            if not prediction:
+                return JsonResponse({'error': 'Farmer record not found'}, status=404)
+
+            # Determine eligibility based on prediction result
+            eligibility = "Eligible" if prediction.prediction_result == 1 else "Not Eligible"
+
+            # Use current date for 'timestamp' instead of 'created_at'
+            current_date = datetime.now().date().isoformat()
+
+            return JsonResponse({
+                'farmer_id': farmer_id,
+                'eligibility': eligibility,
+                'prediction_result': prediction.prediction_result,
+                'timestamp': current_date  # Current date as timestamp
+            })
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
