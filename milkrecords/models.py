@@ -7,8 +7,8 @@ from django.core.exceptions import ValidationError
 class MilkRecords(models.Model):
     record_id = models.AutoField(primary_key=True)
     farmer_id = models.ForeignKey(FarmersManagement, on_delete=models.CASCADE, related_name='milk_records')
-    milk_quantity = models.IntegerField()  
-    price = models.IntegerField(default=70)
+    milk_quantity = models.SmallIntegerField()
+    price = models.SmallIntegerField(default=70) 
     date = models.DateField()
 
     def clean(self):
