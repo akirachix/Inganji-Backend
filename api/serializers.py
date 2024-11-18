@@ -8,8 +8,6 @@ from score.models import Score
 from users.models import UserProfile
 from django.db.models import Sum, F
 
-from rest_framework import serializers
-from django.db.models import Sum
 
 
 class MilkRecordsSerializer(serializers.ModelSerializer):
@@ -46,7 +44,6 @@ class MilkRecordsDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = MilkRecords
         fields = ['milk_quantity', 'price', 'total_value', 'total_milk_value', 'first_name', 'last_name']
-
 
 class FarmerDetailSerializer(serializers.ModelSerializer):
     milk_records = MilkRecordsDetailSerializer(many=True, read_only=True)
