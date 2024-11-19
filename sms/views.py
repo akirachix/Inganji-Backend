@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from django.db.models import Sum
 
 from milkrecords.models import MilkRecords
+from predictive_model.models import Prediction
 from .sms_utils import send_sms, validate_phone_number
 from farmers.models import FarmersManagement
 from django.http import JsonResponse
@@ -69,7 +70,7 @@ def check_eligibility(request):
     farmer_id = request.data.get('farmer_id')    
     try:
         farmer = FarmersManagement.objects.get(farmer_id=farmer_id)
-        score_record = Score.objects.filter(farmer_id=farmer_id).order_by('-last_checked_date').first()
+        score_record = Prediction.objects.filter(farmer_id=farmer_id).order_by('-last_checked_date').first()
 
         
         if score_record:
