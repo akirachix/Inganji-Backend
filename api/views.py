@@ -329,7 +329,6 @@ class CooperativeOnlyView(APIView):
         return Response({"message": "This is a cooperative-only view."})
 
 
-
 import pickle
 import pandas as pd
 from django.http import JsonResponse
