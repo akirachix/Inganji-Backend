@@ -104,16 +104,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'fanikisha.wsgi.application'
 
-
-# Load environment definition file
-ENV_FILE = find_dotenv()
-if ENV_FILE:
-    load_dotenv(ENV_FILE)
-
 # Load Auth0 application settings into memory
-AUTH0_DOMAIN = os.environ.get("AUTH0_DOMAIN")
-AUTH0_CLIENT_ID = os.environ.get("AUTH0_CLIENT_ID")
-AUTH0_CLIENT_SECRET = os.environ.get("AUTH0_CLIENT_SECRET")
+
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -198,7 +190,11 @@ AUTHENTICATION_BACKENDS = (
         'django.contrib.auth.backends.ModelBackend',
     )
 
-
+from pathlib import Path
+import os
+from dotenv import load_dotenv, find_dotenv
+from pathlib import Path
+load_dotenv()
 
 SMS_LEOPARD_API_URL = os.getenv('SMS_LEOPARD_API_URL', '')
 SMS_LEOPARD_ACCESS_TOKEN = os.getenv('SMS_LEOPARD_ACCESS_TOKEN', '')
